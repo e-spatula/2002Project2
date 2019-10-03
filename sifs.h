@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <time.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 //  THE SINGLE INSTANCE FILE SYSTEM (SIFS) APPLICATION PROGRAMMING INTERFACE (API)
 

@@ -16,6 +16,8 @@
 
 #define SIFS_ROOTDIR_BLOCKID	0
 
+extern FILE *open_volume(const char *volume_name);
+
 typedef struct {
     size_t		blocksize;
     uint32_t		nblocks;
