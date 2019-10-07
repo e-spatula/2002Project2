@@ -23,7 +23,7 @@ int SIFS_mkdir(const char *volumename, const char *dirname)
         printf("%d\n", blocks[i].nentries);
     }
     // char *path[] = digest(dirname);
-    // if()
+    
 
 
 
