@@ -16,12 +16,16 @@
 
 #define SIFS_ROOTDIR_BLOCKID	0
 
-extern FILE *open_volume(const char *volume_name);
-
 typedef struct {
     size_t		blocksize;
     uint32_t		nblocks;
 } SIFS_VOLUME_HEADER;
+
+typedef struct {
+    char entries[SIFS_MAX_ENTRIES][SIFS_MAX_NAME_LENGTH];
+    int dircount; 
+    int blocks [SIFS_MAX_ENTRIES];
+} PATH;
 
 typedef char		SIFS_BIT;	// SIFS_UNUSED, SIFS_DIR, ...
 typedef uint32_t	SIFS_BLOCKID;
@@ -50,3 +54,9 @@ typedef struct {
     char		filenames[SIFS_MAX_ENTRIES][SIFS_MAX_NAME_LENGTH];
 } SIFS_FILEBLOCK;
 
+extern FILE *open_volume(const char *volume_name);
+extern int read_bitmap(FILE *, SIFS_BIT *, const SIFS_VOLUME_HEADER *);
+extern int read_header(FILE *, SIFS_VOLUME_HEADER *);
+extern int read_blocks(FILE *, SIFS_DIRBLOCK *, const SIFS_VOLUME_HEADER *);
+extern int digest(const char *, PATH *);
+extern void initialise_path(PATH *);

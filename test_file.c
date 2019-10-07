@@ -8,7 +8,7 @@
 int main(int argcount, char *argvalue[])
 {
     SIFS_mkvolume("test_volume", 1024, 10);
-    if(SIFS_mkdir("test_volume", "mydir") != 0) {
+    if(SIFS_mkdir("test_volume", "hello_world.c/") != 0) {
         SIFS_perror(argvalue[0]);
         exit(EXIT_FAILURE);
     }
