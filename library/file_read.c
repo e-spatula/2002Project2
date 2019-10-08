@@ -50,8 +50,8 @@ int digest(const char *filename, PATH *filepath) {
     } 
 
     while(*filename != '\0') {
-        if(dirlength > SIFS_MAX_NAME_LENGTH - 1 ||
-            ndirs > SIFS_MAX_ENTRIES) {
+        if(dirlength >= (SIFS_MAX_NAME_LENGTH - 2) ||
+            ndirs > SIFS_MAX_ENTRIES - 1) {
             SIFS_errno = SIFS_EMAXENTRY;
             return(1);
         }

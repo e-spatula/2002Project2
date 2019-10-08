@@ -1,10 +1,10 @@
 
-HEADERS	= ../sifs.h sifs-internal.h md5.h
+HEADERS	= ../sifs.h sifs-internal.h md5.h unit_test.h
 LIBRARY	= libsifs.a
 
 OBJECTS	= mkvolume.o open_volume.o file_read.o mkdir.o\
 	 	rmdir.o dirinfo.o writefile.o readfile.o\
-		rmfile.o fileinfo.o perror.o md5.o
+		rmfile.o fileinfo.o perror.o md5.o unit_test.o
 
 CC      = cc
 CFLAGS  = -std=c99 -Wall -Werror -pedantic -g
