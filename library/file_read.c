@@ -41,10 +41,10 @@ void initialise_path(PATH *filepath) {
 }
 
 int digest(const char *filename, PATH *filepath) {
-    // if the path starts with a / ignore it
     int ndirs = 0;
     char *cur_dir = filepath -> entries[ndirs];
     int dirlength = 0;
+    // if the path starts with a / ignore it
     if(*filename == '/') {
         filename++;
     } 
@@ -55,7 +55,7 @@ int digest(const char *filename, PATH *filepath) {
             SIFS_errno = SIFS_EMAXENTRY;
             return(1);
         }
-        if(*filename == '/') {
+        if(*filename == '/' || *filename == '\\') {
             ndirs++;
             *cur_dir = '\0'; 
             cur_dir = filepath -> entries[ndirs];
