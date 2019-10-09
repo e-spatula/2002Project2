@@ -74,7 +74,7 @@ int read_dir_block(FILE* file, SIFS_DIRBLOCK *dir, int offset) {
 }  
 
 // function returns -1 as 0 is a valid index
-int check_dir_entry(int blockno, FILE* file, char *entry, bool check_last_entry) {
+int check_dir_entry(int blockno, FILE* file, char *entry, bool find_dir) {
     if(blockno < 0 || blockno > SIFS_MAX_ENTRIES) {
         SIFS_errno = SIFS_EINVAL;
         return(-1);
@@ -93,28 +93,46 @@ int check_dir_entry(int blockno, FILE* file, char *entry, bool check_last_entry)
     int offset = initial_offset + (header.blocksize * blockno);
 
     read_dir_block(file, &cur_block, offset);
-    printf("%i\n", cur_block.nentries);
     
 
     for(int i = 0; i < cur_block.nentries; i++) {
 
         SIFS_BLOCKID id = cur_block.entries[i].blockID;
-        
-        if(bitmap[id] != SIFS_DIR) {
-            continue;
+        switch(find_dir) {
+            case 0 : {
+                printf("Doing file stuff\n");
+                if(bitmap[id] == SIFS_FILE) {
+                    // TODO: Add in handling for files
+                } else {
+                    break;
+                }
+            } 
+            case 1 : {
+                if(bitmap[id] == SIFS_DIR) {
+                    offset = initial_offset + (header.blocksize * id);
+                    read_dir_block(file, &temp_block, offset);
+                    strcpy(tempname, temp_block.name);
+                    if(strcmp(tempname, entry) == 0) {
+                        return(id);
+                    } else {
+                        SIFS_errno = SIFS_ENOENT;
+                        return(-1);
+                    }      
+                } else {
+                    break;
+                }
+            }
         }
-        offset = initial_offset + (header.blocksize * id);
-        read_dir_block(file, &temp_block, offset);
-        strcpy(tempname, temp_block.name);
-
-        printf("Directory ID %i has name %s\n", id, tempname); 
-    
     }
-    return(0);
+
+ SIFS_errno = SIFS_ENOENT;
+ return(-1);
 }
+
 int set_dir_blocks(PATH *path, FILE* file, bool check_last_entry) {
     char *entry = path -> entries[0];
-    int dir_entry = check_dir_entry(SIFS_ROOTDIR_BLOCKID, file,  entry, check_last_entry);
+    int dir_entry = check_dir_entry(SIFS_ROOTDIR_BLOCKID, file,  entry, true);
+    printf("Dir entry  is : %i\n", dir_entry);
     if(dir_entry < 0) {
         return(1);
     }
