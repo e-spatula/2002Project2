@@ -5,11 +5,14 @@
 
 
 void test_digest(int *failed, int *total) {
+    
     PATH path; 
     initialise_path(&path);
     // check if the function succeeds in normal usage
+    
     *failed += assert_equals(digest("home/eddie", &path), 0);
     (*total)++;
+    
     // check if it fails if there is a dir more than 31 chars
     initialise_path(&path);
     *failed += assert_equals(digest("abcdefghijklmnopqrstau245a64578", &path), 1);
@@ -43,15 +46,13 @@ void test_digest(int *failed, int *total) {
 }
 int main(int argcount, char *argvalue[])
 {
+    /*
     int total = 0;
     int failed = 0;
     
-    // SIFS_mkvolume("test_volume", 1024, 10);
     test_digest(&failed, &total);
-    // if(SIFS_mkdir("test_volume", "mydir/test/hello/world.c") != 0) {
-    //     SIFS_perror(argvalue[0]);
-    //     exit(EXIT_FAILURE);
-    // }
     print_results(&failed, &total);
+    */
+    SIFS_mkdir("volD", "hello");
     return(0);
 }

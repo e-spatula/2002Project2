@@ -55,8 +55,10 @@ typedef struct {
 } SIFS_FILEBLOCK;
 
 extern FILE *open_volume(const char *volume_name);
-extern int read_bitmap(FILE *, SIFS_BIT *, const SIFS_VOLUME_HEADER *);
+extern int read_bitmap(FILE *, SIFS_BIT *, SIFS_VOLUME_HEADER *header);
 extern int read_header(FILE *, SIFS_VOLUME_HEADER *);
-extern int read_blocks(FILE *, SIFS_DIRBLOCK *, const SIFS_VOLUME_HEADER *);
 extern int digest(const char *, PATH *);
 extern void initialise_path(PATH *);
+extern int set_dir_blocks(PATH*, FILE*, bool);
+extern int read_dir_block(FILE* file, SIFS_DIRBLOCK *, int);
+extern int check_dir_entry(int , FILE* , char *, bool );

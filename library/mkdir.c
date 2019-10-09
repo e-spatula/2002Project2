@@ -9,30 +9,14 @@ int SIFS_mkdir(const char *volumename, const char *dirname)
         return(1);
     }
 
-    SIFS_VOLUME_HEADER header;
-    if(read_header(file, &header) != 0) {
-        return(1);
-    }
-    SIFS_BIT bitmap[header.nblocks];
-    if(read_bitmap(file, bitmap, &header) != 0) {
-        return(1);
-    }
-
-    SIFS_DIRBLOCK blocks[header.nblocks];
-    if(read_blocks(file, blocks, &header) != 0) {
-        return(1);
-    }    
     PATH filepath;
     initialise_path(&filepath);
     if(digest(dirname, &filepath) != 0) {
         return(1);
-    }    
-    printf("Number of directories on path %s: %i\n", dirname, filepath.dircount);
-    for(int i = 0; i < filepath.dircount; i++) {
-        printf("/%s", filepath.entries[i]);
     }
-    printf("\n");
     
-
+    if(set_dir_blocks(&filepath, file, false) != 0) {
+        return(1);
+    }      
     return(0);
 }

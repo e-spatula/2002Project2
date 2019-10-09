@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
+#include <stdbool.h>
 
 //  THE SINGLE INSTANCE FILE SYSTEM (SIFS) APPLICATION PROGRAMMING INTERFACE (API)
 
