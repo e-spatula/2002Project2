@@ -53,6 +53,6 @@ int main(int argcount, char *argvalue[])
     test_digest(&failed, &total);
     print_results(&failed, &total);
     */
-    SIFS_mkdir("volD", "subdir1");
+    SIFS_mkdir("volD", "subdir1/eddie");
     return(0);
 }

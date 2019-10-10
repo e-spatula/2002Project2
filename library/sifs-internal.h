@@ -61,4 +61,5 @@ extern int digest(const char *, PATH *);
 extern void initialise_path(PATH *);
 extern int set_dir_blocks(PATH*, FILE*, bool);
 extern int read_dir_block(FILE* file, SIFS_DIRBLOCK *, int);
-extern int check_dir_entry(int , FILE* , char *, bool );
+extern int check_dir_entry(int , FILE* , char *, bool);
+extern int find_unused_blocks(int , FILE*);

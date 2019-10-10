@@ -17,6 +17,10 @@ int SIFS_mkdir(const char *volumename, const char *dirname)
     
     if(set_dir_blocks(&filepath, file, false) != 0) {
         return(1);
-    }      
+    }
+    int block = find_unused_blocks (3, file);
+    if(block < 0) {
+        return(1);
+    }
     return(0);
 }

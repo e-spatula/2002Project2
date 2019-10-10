@@ -129,14 +129,52 @@ int check_dir_entry(int blockno, FILE* file, char *entry, bool find_dir) {
  return(-1);
 }
 
-int set_dir_blocks(PATH *path, FILE* file, bool check_last_entry) {
+int set_dir_blocks(PATH *path, FILE* file, bool check_all_entries) {
     char *entry = path -> entries[0];
     int dir_entry = check_dir_entry(SIFS_ROOTDIR_BLOCKID, file,  entry, true);
-    printf("Dir entry  is : %i\n", dir_entry);
     if(dir_entry < 0) {
         return(1);
     }
 
+    path -> blocks[0] = dir_entry;
+    // loop one fewer time if we aren't checking all the entries
+    int len = check_all_entries ? path -> dircount : path -> dircount - 1;
+    for(int i = 1; i < len; i++) {
+        strcpy(entry, path -> entries[i]);
+        dir_entry = check_dir_entry(path -> blocks[i -1], file, entry, true);
+        if(dir_entry < 0) {
+            return(1);
+        }
+        path -> blocks[i] = dir_entry;
+    }
+
     return(0);
+}
+
+int find_unused_blocks(int nblocks, FILE * file) {
+    
+    SIFS_VOLUME_HEADER header;
+    read_header(file, &header);
+    SIFS_BIT bitmap[header.nblocks];
+    read_bitmap(file, bitmap, &header);
+    
+    int free_blocks = 0;
+    for(int i = 0; i < header.nblocks; i++) {
+        if(bitmap[i] == SIFS_UNUSED) {
+            for(int j = i; j < i + nblocks; j++) {
+                if(bitmap[j] == SIFS_UNUSED) {
+                    free_blocks++;
+                    if(free_blocks == nblocks) {
+                        return(i);
+                    }
+                } else {
+                    free_blocks = 0;
+                    break;
+                }
+            }
+        }
+    }
+    SIFS_errno = SIFS_ENOSPC;
+    return(-1);
 }
 
