@@ -54,12 +54,14 @@ typedef struct {
     char		filenames[SIFS_MAX_ENTRIES][SIFS_MAX_NAME_LENGTH];
 } SIFS_FILEBLOCK;
 
-extern FILE *open_volume(const char *volume_name);
-extern int read_bitmap(FILE *, SIFS_BIT *, SIFS_VOLUME_HEADER *header);
+extern FILE *open_volume(const char *);
+extern int read_bitmap(FILE *, SIFS_BIT *, SIFS_VOLUME_HEADER *);
 extern int read_header(FILE *, SIFS_VOLUME_HEADER *);
 extern int digest(const char *, PATH *);
 extern void initialise_path(PATH *);
 extern int set_dir_blocks(PATH*, FILE*, bool);
-extern int read_dir_block(FILE* file, SIFS_DIRBLOCK *, int);
+extern int read_dir_block(FILE* , SIFS_DIRBLOCK *, int);
 extern int check_dir_entry(int , FILE* , char *, bool);
 extern int find_unused_blocks(int , FILE*);
+extern int write_dir(int, PATH *, FILE *);
+extern int check_collisions(PATH *, FILE *);

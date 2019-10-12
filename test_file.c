@@ -54,5 +54,12 @@ int main(int argcount, char *argvalue[])
     print_results(&failed, &total);
     */
     SIFS_mkdir("volD", "subdir1/eddie");
+    SIFS_perror("Error value ");
+
+    SIFS_mkdir("volD", "subdir1/eddie");
+    SIFS_perror("Error value ");
+    
+    // SIFS_mkdir("volD", "subdir1");
+    // SIFS_perror("Error value ");
     return(0);
 }

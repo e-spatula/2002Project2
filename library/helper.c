@@ -84,11 +84,15 @@ int check_dir_entry(int blockno, FILE* file, char *entry, bool find_dir) {
     SIFS_DIRBLOCK  cur_block;
     SIFS_VOLUME_HEADER header;
     char tempname[SIFS_MAX_NAME_LENGTH];
-    read_header(file, &header);
+    if(read_header(file, &header) != 0) {
+        return(1);
+    }
 
 
     SIFS_BIT bitmap[header.nblocks];
-    read_bitmap(file, bitmap, &header);
+    if(read_bitmap(file, bitmap, &header) != 0) {
+        return(-1);
+    }
     const int initial_offset = sizeof(header) + sizeof(bitmap);
     int offset = initial_offset + (header.blocksize * blockno);
 
@@ -115,7 +119,7 @@ int check_dir_entry(int blockno, FILE* file, char *entry, bool find_dir) {
                     if(strcmp(tempname, entry) == 0) {
                         return(id);
                     } else {
-                        SIFS_errno = SIFS_ENOENT;
+
                         return(-1);
                     }      
                 } else {
@@ -125,39 +129,45 @@ int check_dir_entry(int blockno, FILE* file, char *entry, bool find_dir) {
         }
     }
 
- SIFS_errno = SIFS_ENOENT;
  return(-1);
 }
 
 int set_dir_blocks(PATH *path, FILE* file, bool check_all_entries) {
-    char *entry = path -> entries[0];
-    int dir_entry = check_dir_entry(SIFS_ROOTDIR_BLOCKID, file,  entry, true);
-    if(dir_entry < 0) {
-        return(1);
-    }
-
-    path -> blocks[0] = dir_entry;
-    // loop one fewer time if we aren't checking all the entries
-    int len = check_all_entries ? path -> dircount : path -> dircount - 1;
-    for(int i = 1; i < len; i++) {
-        strcpy(entry, path -> entries[i]);
-        dir_entry = check_dir_entry(path -> blocks[i -1], file, entry, true);
+    if(path -> dircount > 1) {
+        char *entry = path -> entries[0];
+        int dir_entry = check_dir_entry(SIFS_ROOTDIR_BLOCKID, file,  entry, true);
         if(dir_entry < 0) {
             return(1);
         }
-        path -> blocks[i] = dir_entry;
-    }
 
+        path -> blocks[0] = dir_entry;
+        // loop one fewer time if we aren't checking all the entries
+        int len = check_all_entries ? path -> dircount : path -> dircount - 1;
+        for(int i = 1; i < len; i++) {
+            strcpy(entry, path -> entries[i]);
+            dir_entry = check_dir_entry(path -> blocks[i -1], file, entry, true);
+            if(dir_entry < 0) {
+                SIFS_errno = SIFS_ENOENT;
+                return(1);
+            }
+            path -> blocks[i] = dir_entry;
+        }
+    }
     return(0);
 }
 
 int find_unused_blocks(int nblocks, FILE * file) {
     
     SIFS_VOLUME_HEADER header;
-    read_header(file, &header);
+    if(read_header(file, &header) != 0) {
+        return(1);
+    }
+
     SIFS_BIT bitmap[header.nblocks];
-    read_bitmap(file, bitmap, &header);
-    
+    if(read_bitmap(file, bitmap, &header) != 0) {
+        return(-1);
+    }
+
     int free_blocks = 0;
     for(int i = 0; i < header.nblocks; i++) {
         if(bitmap[i] == SIFS_UNUSED) {
@@ -177,4 +187,80 @@ int find_unused_blocks(int nblocks, FILE * file) {
     SIFS_errno = SIFS_ENOSPC;
     return(-1);
 }
+
+int write_dir(int block, PATH *filepath, FILE *file) {
+    SIFS_VOLUME_HEADER header; 
+    SIFS_DIRBLOCK dir;
+    SIFS_DIRBLOCK parent_dir;
+
+    // zero the block before it's written
+    memset(&dir, 0, sizeof(dir));
+    int parent_block;
+
+    if(filepath -> dircount == 1) {
+        parent_block = SIFS_ROOTDIR_BLOCKID;
+    } else {
+        parent_block = filepath -> blocks[filepath -> dircount - 2];
+    }
+
+    if(read_header(file, &header) != 0) {
+        return(1);
+    }
+
+    SIFS_BIT bitmap[header.nblocks];
+    if(read_bitmap(file, bitmap, &header) != 0) {
+        return(-1);
+    }
+
+    bitmap[block] = SIFS_DIR;
+    const int initial_offset = sizeof(header) + sizeof(bitmap);
+    int total_offset;
+
+    // write the bitmap
+
+    fseek(file, sizeof(header), SEEK_SET);
+    fwrite(bitmap, sizeof(bitmap), 1, file);    
+
+    // read the parent directory 
+    total_offset = initial_offset + (header.blocksize * parent_block);
+
+    read_dir_block(file, &parent_dir, total_offset);
+
+    // Change the parent entries and print back to the file
+    uint32_t *parent_entries = &parent_dir.nentries;
+
+    parent_dir.entries[*parent_entries].blockID = block;
+    (*parent_entries)++;
+    parent_dir.modtime = time(NULL);
+
+    fseek(file, total_offset, SEEK_SET);
+    fwrite(&parent_dir, sizeof(parent_dir), 1, file);    
+
+    // add the child directory entries and print it to the file
+    dir.nentries = 0;
+    dir.modtime = time(NULL);
+    strcpy(dir.name, filepath -> entries[filepath -> dircount -1]);
+    
+    total_offset = initial_offset + (header.blocksize * block);
+    fseek(file, total_offset, SEEK_SET);
+    fwrite(&dir, sizeof(dir), 1, file);
+
+    return(0);
+}
+
+int check_collisions(PATH *path, FILE *file) {
+    int parent_block;
+    int dircount = path -> dircount;
+    char *entry = path -> entries[dircount - 1];
+    if(dircount == 1) {
+        parent_block = SIFS_ROOTDIR_BLOCKID;
+    } else {
+        parent_block = path -> blocks[dircount - 2];
+    }
+    if(check_dir_entry(parent_block, file, entry, true) != -1) {
+        SIFS_errno = SIFS_EEXIST;
+        return(1);
+    }
+    return(0);
+} 
 

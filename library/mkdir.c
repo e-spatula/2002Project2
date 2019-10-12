@@ -5,22 +5,35 @@ int SIFS_mkdir(const char *volumename, const char *dirname)
 {
     FILE* file = open_volume(volumename);
     if(file == NULL) {
-        SIFS_errno = SIFS_ENOVOL;
         return(1);
     }
 
     PATH filepath;
     initialise_path(&filepath);
     if(digest(dirname, &filepath) != 0) {
+        fclose(file);
         return(1);
     }
-    
+
     if(set_dir_blocks(&filepath, file, false) != 0) {
+        fclose(file);
         return(1);
     }
-    int block = find_unused_blocks (3, file);
+
+    if(check_collisions(&filepath, file) != 0) {
+        fclose(file);
+        return(-1);
+    }
+    int block = find_unused_blocks (1, file);
     if(block < 0) {
+        fclose(file);
         return(1);
     }
+    if(write_dir(block, &filepath, file) != 0) {
+        fclose(file);
+        return(1);
+    }
+
+    fclose(file);
     return(0);
 }
