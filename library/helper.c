@@ -67,23 +67,28 @@ int digest(const char *filename, PATH *filepath) {
 
 
 int read_dir_block(FILE* file, SIFS_DIRBLOCK *dir, int offset) {
-    rewind(file);
     fseek(file, offset, SEEK_SET);
     fread(dir, sizeof(SIFS_DIRBLOCK), 1, file);
     return(0);
-}  
+}
+
+int read_file_block(FILE* file, SIFS_FILEBLOCK *file_block, int offset) {
+    fseek(file, offset, SEEK_SET);
+    fread(file_block, sizeof(SIFS_FILEBLOCK), 1, file);
+    return(0);
+}
 
 // function returns -1 as 0 is a valid index
-int check_dir_entry(int blockno, FILE* file, char *entry, bool find_dir) {
+int check_dir_entry(int blockno, FILE* file, char *entry, SIFS_BIT req_type) {
     if(blockno < 0 || blockno > SIFS_MAX_ENTRIES) {
         SIFS_errno = SIFS_EINVAL;
         return(-1);
     }
     
-    SIFS_DIRBLOCK temp_block;
+    // SIFS_DIRBLOCK temp_block;
     SIFS_DIRBLOCK  cur_block;
     SIFS_VOLUME_HEADER header;
-    char tempname[SIFS_MAX_NAME_LENGTH];
+    // char tempname[SIFS_MAX_NAME_LENGTH];
     if(read_header(file, &header) != 0) {
         return(1);
     }
@@ -97,45 +102,27 @@ int check_dir_entry(int blockno, FILE* file, char *entry, bool find_dir) {
     int offset = initial_offset + (header.blocksize * blockno);
 
     read_dir_block(file, &cur_block, offset);
-    
+    DIR_ENTRIES dir_entries;
 
-    for(int i = 0; i < cur_block.nentries; i++) {
+    if(get_entries(&cur_block, &dir_entries, file) != 0) {
+        return(1);
+    }   
 
-        SIFS_BLOCKID id = cur_block.entries[i].blockID;
-        switch(find_dir) {
-            case 0 : {
-                printf("Doing file stuff\n");
-                if(bitmap[id] == SIFS_FILE) {
-                    // TODO: Add in handling for files
-                } else {
-                    break;
-                }
-            } 
-            case 1 : {
-                if(bitmap[id] == SIFS_DIR) {
-                    offset = initial_offset + (header.blocksize * id);
-                    read_dir_block(file, &temp_block, offset);
-                    strcpy(tempname, temp_block.name);
-                    if(strcmp(tempname, entry) == 0) {
-                        return(id);
-                    } else {
+    for(int i = 0; i < dir_entries.nentries; i++) {
+        if(strcmp(dir_entries.entries[i], entry) == 0 &&
+            dir_entries.type[i] == req_type) {
 
-                        return(-1);
-                    }      
-                } else {
-                    break;
-                }
-            }
+            return(dir_entries.blocks[i]);
         }
     }
-
+    
  return(-1);
 }
 
 int set_dir_blocks(PATH *path, FILE* file, bool check_all_entries) {
     if(path -> dircount > 1) {
         char *entry = path -> entries[0];
-        int dir_entry = check_dir_entry(SIFS_ROOTDIR_BLOCKID, file,  entry, true);
+        int dir_entry = check_dir_entry(SIFS_ROOTDIR_BLOCKID, file, entry, SIFS_DIR);
         if(dir_entry < 0) {
             return(1);
         }
@@ -145,7 +132,7 @@ int set_dir_blocks(PATH *path, FILE* file, bool check_all_entries) {
         int len = check_all_entries ? path -> dircount : path -> dircount - 1;
         for(int i = 1; i < len; i++) {
             strcpy(entry, path -> entries[i]);
-            dir_entry = check_dir_entry(path -> blocks[i -1], file, entry, true);
+            dir_entry = check_dir_entry(path -> blocks[i -1], file, entry, SIFS_DIR);
             if(dir_entry < 0) {
                 SIFS_errno = SIFS_ENOENT;
                 return(1);
@@ -257,10 +244,61 @@ int check_collisions(PATH *path, FILE *file) {
     } else {
         parent_block = path -> blocks[dircount - 2];
     }
-    if(check_dir_entry(parent_block, file, entry, true) != -1) {
+    if(check_dir_entry(parent_block, file, entry, SIFS_DIR) != -1) {
         SIFS_errno = SIFS_EEXIST;
         return(1);
     }
     return(0);
 } 
 
+int get_entries(SIFS_DIRBLOCK *block, DIR_ENTRIES *dir_entries, FILE *file) {
+    
+    SIFS_DIRBLOCK temp_dir;
+    SIFS_FILEBLOCK temp_file;
+    SIFS_VOLUME_HEADER header;
+    int entry_count = 0;
+    
+    if(read_header(file, &header) != 0) {
+        return(1);
+    }
+
+    SIFS_BIT bitmap[header.nblocks];
+    if(read_bitmap(file, bitmap, &header) != 0) {
+        return(-1);
+    }
+    int offset; 
+    const int initial_offset = sizeof(header) + sizeof(bitmap);
+    
+    for(int i = 0; i < block -> nentries; i++) {
+
+        SIFS_BLOCKID id = block -> entries[i].blockID;
+        SIFS_BIT block_type  = bitmap[id];
+
+        offset = initial_offset + (id * header.blocksize);
+        
+        if(block_type == SIFS_DIR) {
+            dir_entries -> blocks[entry_count] = id;
+            dir_entries -> type[entry_count] = block_type;
+    
+            read_dir_block(file, &temp_dir, offset);
+            strcpy(dir_entries -> entries[entry_count], temp_dir.name);
+            entry_count++;
+
+        } else if(block_type == SIFS_FILE) {
+            read_file_block(file, &temp_file, offset);
+            
+            for(int j = 0; j < temp_file.nfiles; j++) {
+                
+                dir_entries -> blocks[entry_count] = id;
+                dir_entries -> type[entry_count] = block_type;
+                strcpy(dir_entries -> entries[entry_count], temp_file.filenames[j]);
+                entry_count++;
+            }
+        } else {
+            SIFS_errno = SIFS_ENOENT;
+            return(1); 
+        }
+    }
+    dir_entries -> nentries = entry_count;
+    return(0);
+}

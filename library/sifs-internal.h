@@ -16,6 +16,9 @@
 
 #define SIFS_ROOTDIR_BLOCKID	0
 
+typedef char		SIFS_BIT;	// SIFS_UNUSED, SIFS_DIR, ...
+typedef uint32_t	SIFS_BLOCKID;
+
 typedef struct {
     size_t		blocksize;
     uint32_t		nblocks;
@@ -23,12 +26,18 @@ typedef struct {
 
 typedef struct {
     char entries[SIFS_MAX_ENTRIES][SIFS_MAX_NAME_LENGTH];
-    int dircount; 
+    uint32_t dircount; 
     int blocks [SIFS_MAX_ENTRIES];
 } PATH;
 
-typedef char		SIFS_BIT;	// SIFS_UNUSED, SIFS_DIR, ...
-typedef uint32_t	SIFS_BLOCKID;
+typedef struct {
+    uint32_t nentries;
+    SIFS_BLOCKID blocks[SIFS_MAX_ENTRIES];
+    // possible but unlikely that we have 24 files each of which has 24 alises
+    char entries[SIFS_MAX_ENTRIES * SIFS_MAX_ENTRIES][SIFS_MAX_NAME_LENGTH];
+    SIFS_BIT type[SIFS_MAX_ENTRIES];
+} DIR_ENTRIES;
+
 
 //  DEFINITION OF EACH DIRECTORY BLOCK - MUST FIT INSIDE A SINGLE BLOCK
 typedef struct {
@@ -61,7 +70,9 @@ extern int digest(const char *, PATH *);
 extern void initialise_path(PATH *);
 extern int set_dir_blocks(PATH*, FILE*, bool);
 extern int read_dir_block(FILE* , SIFS_DIRBLOCK *, int);
-extern int check_dir_entry(int , FILE* , char *, bool);
+extern int read_file_block(FILE* , SIFS_FILEBLOCK *, int);
+extern int check_dir_entry(int , FILE* , char *, SIFS_BIT);
 extern int find_unused_blocks(int , FILE*);
 extern int write_dir(int, PATH *, FILE *);
 extern int check_collisions(PATH *, FILE *);
+extern int get_entries(SIFS_DIRBLOCK *, DIR_ENTRIES *, FILE *);

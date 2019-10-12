@@ -3,6 +3,10 @@
 // make a new directory within an existing volume
 int SIFS_mkdir(const char *volumename, const char *dirname)
 {
+    if(strlen(dirname) == 0) {
+        SIFS_errno = SIFS_EINVAL;
+        return(1);
+    }
     FILE* file = open_volume(volumename);
     if(file == NULL) {
         return(1);

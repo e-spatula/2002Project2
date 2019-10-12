@@ -16,8 +16,9 @@ void print_results(int *failed, int *total) {
 	printf(GREEN "Passed : %i\n" RESET, passed);
 	printf(RED "Failed : %i\n" RESET, *failed);
 	if(*failed == 0) {
-		printf(GREEN "All tests passed\n" RESET);
+		printf(GREEN "All tests passed\n"RESET);
 	} else {
 		printf(RED "%i tests failed\n" RESET, *failed);
 	}
+	printf(RESET"\n");
 }
