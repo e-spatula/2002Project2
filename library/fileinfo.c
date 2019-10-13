@@ -68,5 +68,6 @@ int SIFS_fileinfo(const char *volumename, const char *pathname,
     }
     *length = child_file.length;
     *modtime = child_file.modtime;
+    fclose(file);
     return(0);
 }

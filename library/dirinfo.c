@@ -50,7 +50,7 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
         uint32_t size = sizeof(dir_entries.entries[0]); 
         return_entries = malloc(dir_entries.nentries * size); 
         if(return_entries == NULL) {
-            SIFS_errno = SIFS_EINVAL;
+            SIFS_errno = SIFS_ENOMEM;
             return(1);
         }
         for(int i = 0; i < dir_entries.nentries; i++) {
@@ -62,6 +62,6 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
         } 
     }
     *entrynames = return_entries;
-
+    fclose(file);
     return(0);
 }

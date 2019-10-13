@@ -65,11 +65,19 @@ int main(int argcount, char *argvalue[])
     //         free(entrynames[i]);
     //     }
     // }
-    size_t length;
-    time_t modtime;
-    SIFS_fileinfo("volD", "besttq-sample.c", &length, &modtime);
+    // size_t length;
+    // time_t modtime;
+    // SIFS_fileinfo("volD", "besttq-sample.c", &length, &modtime);
+    // SIFS_perror("Error : ");
+    // printf("Length : %li\n", length);
+    // printf("Modtime : %li\n", modtime);
+
+    FILE * file = fopen("output", "w");
+    void *data = NULL;
+    size_t nbytes;
+    SIFS_readfile("volC", "sifs.h-copy", &data, &nbytes);
+    fwrite(data, nbytes, 1, file);
+    fclose(file);
     SIFS_perror("Error : ");
-    printf("Length : %li\n", length);
-    printf("Modtime : %li\n", modtime);
     return(0);
 }

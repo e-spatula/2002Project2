@@ -128,6 +128,11 @@ int set_dir_blocks(PATH *path, FILE* file, bool check_all_entries) {
         // Set root block
         path -> blocks[0] = SIFS_ROOTDIR_BLOCKID;
         char *entry = malloc(SIFS_MAX_NAME_LENGTH * sizeof(char));
+        
+        if(entry == NULL) {
+            SIFS_errno = SIFS_ENOMEM;
+            return(1);
+        }
         int dir_entry;
     
         // loop one fewer time if we aren't checking all the entries
@@ -264,7 +269,7 @@ int get_entries(SIFS_DIRBLOCK *block, DIR_ENTRIES *dir_entries, FILE *file) {
 
     SIFS_BIT bitmap[header.nblocks];
     if(read_bitmap(file, bitmap, &header) != 0) {
-        return(-1);
+        return(1);
     }
     int offset; 
     const int initial_offset = sizeof(header) + sizeof(bitmap);
