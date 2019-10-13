@@ -41,7 +41,9 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     *nentries = dir.nentries;
     *modtime = dir.modtime;
     DIR_ENTRIES dir_entries;
-    get_entries(&dir, &dir_entries, file);
+    if(get_entries(&dir, &dir_entries, file) != 0) {
+        return(1);
+    }
 
     char **return_entries = NULL;
     if(dir_entries.nentries > 0) {

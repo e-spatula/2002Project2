@@ -1,9 +1,9 @@
 #include "sifs-internal.h"
 
 // make a new directory within an existing volume
-int SIFS_mkdir(const char *volumename, const char *dirname)
+int SIFS_mkdir(const char *volumename, const char *pathname)
 {
-    if(strlen(dirname) == 0) {
+    if(strlen(pathname) == 0) {
         SIFS_errno = SIFS_EINVAL;
         return(1);
     }
@@ -14,7 +14,7 @@ int SIFS_mkdir(const char *volumename, const char *dirname)
 
     PATH filepath;
     initialise_path(&filepath);
-    if(digest(dirname, &filepath) != 0) {
+    if(digest(pathname, &filepath) != 0) {
         fclose(file);
         return(1);
     }

@@ -149,7 +149,7 @@ int find_unused_blocks(int nblocks, FILE * file) {
     
     SIFS_VOLUME_HEADER header;
     if(read_header(file, &header) != 0) {
-        return(1);
+        return(-1);
     }
 
     SIFS_BIT bitmap[header.nblocks];
