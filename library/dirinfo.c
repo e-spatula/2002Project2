@@ -31,10 +31,6 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     }
 
     int dircount = filepath.dircount; 
-    printf("Dircount is : %i\n", dircount);
-    for(int i = 0; i < dircount; i++) {
-        printf("Entry %s has block %i\n", filepath.entries[i], filepath.blocks[i]);
-    }
     int block = filepath.blocks[dircount - 1];
     int offset = sizeof(header) + sizeof(bitmap) + (block * header.blocksize);
 
@@ -47,14 +43,23 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     DIR_ENTRIES dir_entries;
     get_entries(&dir, &dir_entries, file);
 
-    
-    // *entrynames = malloc(dir_entries.nentries * sizeof(char*));
+    char **return_entries = NULL;
+    if(dir_entries.nentries > 0) {
+        uint32_t size = sizeof(dir_entries.entries[0]); 
+        return_entries = malloc(dir_entries.nentries * size); 
+        if(return_entries == NULL) {
+            SIFS_errno = SIFS_EINVAL;
+            return(1);
+        }
+        for(int i = 0; i < dir_entries.nentries; i++) {
+            return_entries[i] = strdup(dir_entries.entries[i]);
+            if(return_entries[i] == NULL) {
+                SIFS_errno = SIFS_EINVAL;
+                return(1);
+            }
+        } 
+    }
+    *entrynames = return_entries;
 
-    // for(int i = 0; i < dir_entries.nentries; i++) {
-    //     int len = strlen(dir_entries.entries[i]);
-    //     **entrynames = malloc(len * sizeof(char));
-    //     strcpy(**entrynames, dir_entries.entries[i]);
-    //     (**entrynames)++; 
-    // }
     return(0);
 }

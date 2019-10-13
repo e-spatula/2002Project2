@@ -39,25 +39,31 @@ void test_digest(int *failed, int *total) {
 int main(int argcount, char *argvalue[])
 {
     
-    // int total = 0;
-    // int failed = 0;
+    int total = 0;
+    int failed = 0;
     
-    // test_digest(&failed, &total);
-    // print_results(&failed, &total);
+    test_digest(&failed, &total);
+    print_results(&failed, &total);
 
     SIFS_errno = SIFS_EOK;
-    // SIFS_mkdir("volD", "subdir1/eddie");
-    // SIFS_perror("Error value ");
+    SIFS_mkdir("volD", "subdir1/eddie");
+    SIFS_perror("Error value ");
 
-    // SIFS_mkdir("volD", "subdir1/eddie");
-    // SIFS_perror("Error value ");
+    SIFS_mkdir("volD", "subdir1/eddie");
+    SIFS_perror("Error value ");
     
     SIFS_errno = SIFS_EOK;
     uint32_t nentries;
     time_t modtime;
-    char ***entrynames = NULL;
-    SIFS_dirinfo("volD", "subdir1", entrynames, &nentries, &modtime);
+    char **entrynames = NULL;
+    SIFS_dirinfo("volD", "", &entrynames, &nentries, &modtime);
     printf("Nentries : %i\n", nentries);
     printf("Modtime : %li\n", modtime);
+    if(entrynames != NULL) {
+        for(int i = 0; i < nentries; i++) {
+            printf("Entry %i : %s\n", i, entrynames[i]);
+            free(entrynames[i]);
+        }
+    }
     return(0);
 }

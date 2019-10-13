@@ -129,7 +129,7 @@ int set_dir_blocks(PATH *path, FILE* file, bool check_all_entries) {
         path -> blocks[0] = SIFS_ROOTDIR_BLOCKID;
         char *entry = malloc(SIFS_MAX_NAME_LENGTH * sizeof(char));
         int dir_entry;
-        
+    
         // loop one fewer time if we aren't checking all the entries
         int len = check_all_entries ? path -> dircount : path -> dircount - 1;
         for(int i = 1; i < len; i++) {

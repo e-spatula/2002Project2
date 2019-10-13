@@ -16,6 +16,10 @@
 
 #define SIFS_ROOTDIR_BLOCKID	0
 
+#if     defined(__linux__)
+extern  char    *strdup(const char *s);
+#endif
+
 typedef char		SIFS_BIT;	// SIFS_UNUSED, SIFS_DIR, ...
 typedef uint32_t	SIFS_BLOCKID;
 
@@ -33,8 +37,7 @@ typedef struct {
 typedef struct {
     uint32_t nentries;
     SIFS_BLOCKID blocks[SIFS_MAX_ENTRIES];
-    // possible but unlikely that we have 24 files each of which has 24 alises
-    char entries[SIFS_MAX_ENTRIES * SIFS_MAX_ENTRIES][SIFS_MAX_NAME_LENGTH];
+    char entries[SIFS_MAX_ENTRIES][SIFS_MAX_NAME_LENGTH];
     SIFS_BIT type[SIFS_MAX_ENTRIES];
 } DIR_ENTRIES;
 
