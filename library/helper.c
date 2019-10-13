@@ -30,14 +30,19 @@ int digest(const char *filename, PATH *filepath) {
     int ndirs = 0;
     char *cur_dir = filepath -> entries[ndirs];
     int dirlength = 0;
+    
+    // add root to the path 
+    cur_dir = '\0';
+    ndirs++;
+    cur_dir = filepath -> entries[ndirs];
+
     // if the path starts with a / ignore it
     if(*filename == '/') {
         filename++;
     } 
 
     while(*filename != '\0') {
-        if(dirlength >= (SIFS_MAX_NAME_LENGTH - 2) ||
-            ndirs > SIFS_MAX_ENTRIES - 1) {
+        if(dirlength >= (SIFS_MAX_NAME_LENGTH - 2)) {
             SIFS_errno = SIFS_EMAXENTRY;
             return(1);
         }
@@ -120,14 +125,11 @@ int check_dir_entry(int blockno, FILE* file, char *entry, SIFS_BIT req_type) {
 }
 
 int set_dir_blocks(PATH *path, FILE* file, bool check_all_entries) {
-    if(path -> dircount > 1) {
-        char *entry = path -> entries[0];
-        int dir_entry = check_dir_entry(SIFS_ROOTDIR_BLOCKID, file, entry, SIFS_DIR);
-        if(dir_entry < 0) {
-            return(1);
-        }
-
-        path -> blocks[0] = dir_entry;
+        // Set root block
+        path -> blocks[0] = SIFS_ROOTDIR_BLOCKID;
+        char *entry = malloc(SIFS_MAX_NAME_LENGTH * sizeof(char));
+        int dir_entry;
+        
         // loop one fewer time if we aren't checking all the entries
         int len = check_all_entries ? path -> dircount : path -> dircount - 1;
         for(int i = 1; i < len; i++) {
@@ -139,7 +141,7 @@ int set_dir_blocks(PATH *path, FILE* file, bool check_all_entries) {
             }
             path -> blocks[i] = dir_entry;
         }
-    }
+    free(entry);
     return(0);
 }
 
@@ -239,11 +241,9 @@ int check_collisions(PATH *path, FILE *file) {
     int parent_block;
     int dircount = path -> dircount;
     char *entry = path -> entries[dircount - 1];
-    if(dircount == 1) {
-        parent_block = SIFS_ROOTDIR_BLOCKID;
-    } else {
-        parent_block = path -> blocks[dircount - 2];
-    }
+    
+    parent_block = path -> blocks[dircount - 2];
+    
     if(check_dir_entry(parent_block, file, entry, SIFS_DIR) != -1) {
         SIFS_errno = SIFS_EEXIST;
         return(1);
