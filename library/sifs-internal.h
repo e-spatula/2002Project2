@@ -79,3 +79,4 @@ extern int find_unused_blocks(int , FILE*);
 extern int write_dir(int, PATH *, FILE *);
 extern int check_collisions(PATH *, FILE *);
 extern int get_entries(SIFS_DIRBLOCK *, DIR_ENTRIES *, FILE *);
+extern int write_file(SIFS_FILEBLOCK *, int, FILE *);

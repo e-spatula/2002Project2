@@ -57,7 +57,7 @@ int SIFS_fileinfo(const char *volumename, const char *pathname,
             }
     }
 
-    if(file_block == -1) {
+    if(file_block < 0) {
         SIFS_errno = SIFS_ENOENT;
         return(1);
     }

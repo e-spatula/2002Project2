@@ -128,7 +128,7 @@ int set_dir_blocks(PATH *path, FILE* file, bool check_all_entries) {
         // Set root block
         path -> blocks[0] = SIFS_ROOTDIR_BLOCKID;
         char *entry = malloc(SIFS_MAX_NAME_LENGTH * sizeof(char));
-        
+
         if(entry == NULL) {
             SIFS_errno = SIFS_ENOMEM;
             return(1);
@@ -189,13 +189,8 @@ int write_dir(int block, PATH *filepath, FILE *file) {
 
     // zero the block before it's written
     memset(&dir, 0, sizeof(dir));
-    int parent_block;
-
-    if(filepath -> dircount == 1) {
-        parent_block = SIFS_ROOTDIR_BLOCKID;
-    } else {
-        parent_block = filepath -> blocks[filepath -> dircount - 2];
-    }
+    
+    int parent_block = filepath -> blocks[filepath -> dircount - 2];
 
     if(read_header(file, &header) != 0) {
         return(1);
@@ -203,7 +198,7 @@ int write_dir(int block, PATH *filepath, FILE *file) {
 
     SIFS_BIT bitmap[header.nblocks];
     if(read_bitmap(file, bitmap, &header) != 0) {
-        return(-1);
+        return(1);
     }
 
     bitmap[block] = SIFS_DIR;
@@ -305,5 +300,13 @@ int get_entries(SIFS_DIRBLOCK *block, DIR_ENTRIES *dir_entries, FILE *file) {
         }
     }
     dir_entries -> nentries = entry_count;
+    return(0);
+}
+
+int write_file(SIFS_FILEBLOCK *file_block, int offset, FILE *file) {
+    
+    fseek(file, offset, SEEK_SET);
+    fwrite(file_block, sizeof(SIFS_FILEBLOCK), 1, file);
+
     return(0);
 }

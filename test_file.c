@@ -49,7 +49,7 @@ int main(int argcount, char *argvalue[])
     // SIFS_mkdir("volD", "subdir1/eddie");
     // SIFS_perror("Error value ");
 
-    // SIFS_mkdir("volD", "subdir1/eddie");
+    // SIFS_mkdir("volD", "rhee");
     // SIFS_perror("Error value ");
     
     // SIFS_errno = SIFS_EOK;
@@ -72,12 +72,15 @@ int main(int argcount, char *argvalue[])
     // printf("Length : %li\n", length);
     // printf("Modtime : %li\n", modtime);
 
-    FILE * file = fopen("output", "w");
-    void *data = NULL;
-    size_t nbytes;
-    SIFS_readfile("volC", "sifs.h-copy", &data, &nbytes);
-    fwrite(data, nbytes, 1, file);
-    fclose(file);
-    SIFS_perror("Error : ");
+    // FILE * file = fopen("output", "w");
+    // void *data = NULL;
+    // size_t nbytes;
+    // SIFS_readfile("volC", "sifs.h-copy", &data, &nbytes);
+    // fwrite(data, nbytes, 1, file);
+    // fclose(file);
+    // SIFS_perror("Error ");
+
+    SIFS_rmfile("volC", "sifs.h");
+    SIFS_perror("Error ");
     return(0);
 }
