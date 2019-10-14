@@ -27,11 +27,13 @@ int SIFS_fileinfo(const char *volumename, const char *pathname,
 
     SIFS_VOLUME_HEADER header;
     if(read_header(file, &header) != 0) {
+        fclose(file);
         return(1);
     }
 
     SIFS_BIT bitmap[header.nblocks];
     if(read_bitmap(file, bitmap, &header) != 0) {
+        fclose(file);
         return(1);
     }
     int parent = filepath.blocks[filepath.dircount - 2];
@@ -41,11 +43,13 @@ int SIFS_fileinfo(const char *volumename, const char *pathname,
     SIFS_DIRBLOCK parent_block;
     
     if(read_dir_block(file, &parent_block, total_offset) != 0) {
+        fclose(file);
         return(1);
     }
     
     DIR_ENTRIES dir_entries;
     if(get_entries(&parent_block, &dir_entries, file) != 0) {
+        fclose(file);
         return(1);
     }
     int file_block = -1;
@@ -59,11 +63,13 @@ int SIFS_fileinfo(const char *volumename, const char *pathname,
 
     if(file_block < 0) {
         SIFS_errno = SIFS_ENOENT;
+        fclose(file);
         return(1);
     }
     SIFS_FILEBLOCK child_file;
     total_offset = initial_offset + (header.blocksize * file_block);
     if(read_file_block(file, &child_file, total_offset) != 0) {
+        fclose(file);
         return(1);
     }
     *length = child_file.length;

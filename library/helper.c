@@ -182,7 +182,7 @@ int find_unused_blocks(int nblocks, FILE * file) {
     return(-1);
 }
 
-int write_dir(int block, PATH *filepath, FILE *file) {
+int write_new_dir(int block, PATH *filepath, FILE *file) {
     SIFS_VOLUME_HEADER header; 
     SIFS_DIRBLOCK dir;
     SIFS_DIRBLOCK parent_dir;
@@ -308,5 +308,22 @@ int write_file(SIFS_FILEBLOCK *file_block, int offset, FILE *file) {
     fseek(file, offset, SEEK_SET);
     fwrite(file_block, sizeof(SIFS_FILEBLOCK), 1, file);
 
+    return(0);
+}
+
+int write_bitmap(SIFS_BIT *bitmap, SIFS_VOLUME_HEADER *header, FILE *file) {
+    
+    int offset = sizeof(SIFS_VOLUME_HEADER);
+    fseek(file, offset, SEEK_SET);
+    for(int i = 0; i < header -> nblocks; i++) {
+        fwrite(bitmap, sizeof(SIFS_BIT), 1, file);
+        bitmap++;
+    }
+    return(0);
+}
+
+int write_block(SIFS_DIRBLOCK *block, int offset, FILE *file) {
+    fseek(file, offset, SEEK_SET);
+    fwrite(block, sizeof(SIFS_DIRBLOCK), 1, file);
     return(0);
 }

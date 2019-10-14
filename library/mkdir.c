@@ -26,14 +26,14 @@ int SIFS_mkdir(const char *volumename, const char *pathname)
 
     if(check_collisions(&filepath, file) != 0) {
         fclose(file);
-        return(-1);
+        return(1);
     }
     int block = find_unused_blocks (1, file);
     if(block < 0) {
         fclose(file);
         return(1);
     }
-    if(write_dir(block, &filepath, file) != 0) {
+    if(write_new_dir(block, &filepath, file) != 0) {
         fclose(file);
         return(1);
     }

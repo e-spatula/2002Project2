@@ -14,7 +14,7 @@ YOU WILL NEED TO COMPLETE THE API IMPLEMENTATIONS OF:
     writefile.c
     readfile.c done
     fileinfo.c done
-    rmfile.c
+    rmfile.c done
 
 
 YOU DO NOT NEED TO UNDERSTAND THE MD5 IMPLEMENTATION IN:

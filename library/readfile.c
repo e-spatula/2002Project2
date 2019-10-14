@@ -28,11 +28,13 @@ int SIFS_readfile(const char *volumename, const char *pathname,
     SIFS_VOLUME_HEADER header;
     
     if(read_header(file, &header) != 0) {
+        fclose(file);
         return(1);
     }
 
     SIFS_BIT bitmap[header.nblocks];
     if(read_bitmap(file, bitmap, &header) != 0) {
+        fclose(file);
         return(1);
     }
     
@@ -44,6 +46,7 @@ int SIFS_readfile(const char *volumename, const char *pathname,
         
     if(file_block < 0) {
         SIFS_errno = SIFS_ENOENT;
+        fclose(file);
         return(1);
     }
 
@@ -54,7 +57,7 @@ int SIFS_readfile(const char *volumename, const char *pathname,
     
     *nbytes = file_to_read.length;
 
-    printf("bytes to be read %li\n", *nbytes);
+    
     // ensure that the file pointer is in the correct position
     total_offset += header.blocksize;
     fseek(file, total_offset, SEEK_SET);
@@ -62,6 +65,7 @@ int SIFS_readfile(const char *volumename, const char *pathname,
     *data = malloc(*nbytes);
     if(data == NULL) {
         SIFS_errno = SIFS_ENOMEM;
+        fclose(file);
         return(1);
     }
 

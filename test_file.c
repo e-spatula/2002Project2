@@ -82,5 +82,15 @@ int main(int argcount, char *argvalue[])
 
     SIFS_rmfile("volC", "sifs.h");
     SIFS_perror("Error ");
+    SIFS_rmfile("volD", "sifs.h");
+    SIFS_perror("Error ");
+
+    // FILE * file = fopen("besttq-sample.c", "r");
+    // int size = 17360;
+    // void *data = malloc(size);
+    // fread(data, size, 1, file);
+    // SIFS_writefile("volD", "/rhee.c", data, size);
+    // SIFS_perror("Error ");
+
     return(0);
 }
