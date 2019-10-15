@@ -80,17 +80,23 @@ int main(int argcount, char *argvalue[])
     // fclose(file);
     // SIFS_perror("Error ");
 
-    SIFS_rmfile("volC", "sifs.h");
-    SIFS_perror("Error ");
-    SIFS_rmfile("volD", "sifs.h");
-    SIFS_perror("Error ");
-
-    // FILE * file = fopen("besttq-sample.c", "r");
-    // int size = 17360;
-    // void *data = malloc(size);
-    // fread(data, size, 1, file);
-    // SIFS_writefile("volD", "/rhee.c", data, size);
+    // SIFS_rmfile("volC", "sifs.h");
     // SIFS_perror("Error ");
+    // SIFS_rmfile("volD", "sifs.h");
+    // SIFS_perror("Error ");
+
+
+   FILE *file = fopen("clean.sh", "r");
+   struct stat stats;
+    if(stat("clean.sh", &stats) == 0) {
+        size_t size = stats.st_size;
+        void *data = malloc(size);
+        fread(data, size, 1, file);
+        SIFS_writefile("volD", "/subdir1/rhee.c", data, size);
+        SIFS_perror("Error ");
+    }
+
+    
 
     return(0);
 }

@@ -3,10 +3,16 @@
 #include <string.h>
 #include <stdbool.h>
 
-//  besttq-sample (v1.0)
+/* CITS2002 Project 1 2019
+   Name(s):             student-name1 (, student-name2)
+   Student number(s):   student-number-1 (, student-number-2)
+ */
+
+
+//  besttq (v1.0)
 //  Written by Chris.McDonald@uwa.edu.au, 2019, free for all to copy and modify
 
-//  Compile with:  cc -std=c99 -Wall -Werror -o besttq-sample besttq-sample.c
+//  Compile with:  cc -std=c99 -Wall -Werror -o besttq besttq.c
 
 
 //  THESE CONSTANTS DEFINE THE MAXIMUM SIZE OF TRACEFILE CONTENTS (AND HENCE
@@ -49,7 +55,6 @@ int     process_IO_datasize[MAX_PROCESSES][MAX_EVENTS_PER_PROCESS];
 
 //  ----------------------------------------------------------------------
 
-//  THIS SOLUTION IDENTIFIES DEVICES WITH INTEGERS, RATHER THAN STRINGS
 int find_device(char wanted[], int lc)
 {
     for(int dev=0 ; dev<ndevices ; ++dev) {
@@ -156,7 +161,6 @@ void parse_tracefile(char program[], char tracefile[])
 //  ----------------------------------------------------------------------
 
 //  CALL THIS FUNCTION TO CHECK THAT DATA HAS BEEN STORED CORRECTLY
-//  NOT REQUIRED FOR THE PROJECT'S SOLUTION, BUT HELPFUL
 void print_tracefile(void)
 {
     for(int dev=0 ; dev<ndevices ; ++dev) {
@@ -185,8 +189,8 @@ void print_tracefile(void)
 #include <stdarg.h>
 
 char    logbuf[1024], *lp;
-bool    verbose         = false;
-int     nlines          = 0;
+bool    verbose		= false;
+int	nlines		= 0;
 
 void start_log(void)
 {
@@ -197,7 +201,7 @@ void start_log(void)
 void LOG(char *fmt, ...)
 {
     if(verbose) {
-        va_list ap;
+        va_list	ap;
 
         if(logbuf[0]) {
             *lp++   = ',';
@@ -213,12 +217,19 @@ void LOG(char *fmt, ...)
     }
 }
 
+#define	MAX_LOG_LINES	100000
+
 void flush_log(int TIME_NOW, char end[])
 {
     if(logbuf[0]) {
         printf("@%08i   %-70s%s\n", TIME_NOW, logbuf, end);
+	if(++nlines >= MAX_LOG_LINES) {
+	    printf("hmmm, too much output - giving up!\n");
+	    exit(EXIT_FAILURE);
+	}
     }
 }
+#undef	MAX_LOG_LINES
 
 //  ----------------------------------------------------------------------
 
@@ -263,8 +274,8 @@ void init_IO_queues(void)
     for(int dev=0 ; dev<ndevices ; ++dev) {
         IO_nblocked[dev]  = 0;
     }
-    device_using_databus        = UNKNOWN;
-    device_releases_databus     = UNKNOWN;
+    device_using_databus	= UNKNOWN;
+    device_releases_databus	= UNKNOWN;
 }
 
 void append_to_IO_queue(int dev, int proc, int datasize)
@@ -299,44 +310,44 @@ void manage_IO_queues(int TIME_NOW)
 {
 //  IS THE DATABUS CURRENTLY IN USE, AND THE CURRENT I/O COMPLETES NOW?
     if(device_using_databus != UNKNOWN && device_releases_databus == TIME_NOW) {
-        char    from[12 + MAX_DEVICE_NAME];
-        int     p0      = remove_head_of_IO_queue(device_using_databus);
+	char    from[12 + MAX_DEVICE_NAME];
+	int	p0	= remove_head_of_IO_queue(device_using_databus);
 
-        LOG("p%i.release_databus", process_id[p0] );
-        sprintf(from, "BLOCKED(%s)", device_name[device_using_databus]);
-        append_to_READY_queue(p0, from);
-        device_using_databus    = UNKNOWN;
-        device_releases_databus = UNKNOWN;
+	LOG("p%i.release_databus", process_id[p0] );
+	sprintf(from, "BLOCKED(%s)", device_name[device_using_databus]);
+	append_to_READY_queue(p0, from);
+	device_using_databus	= UNKNOWN;
+	device_releases_databus	= UNKNOWN;
     }
 
 //  IS THE DATABUS NOW AVAILABLE FOR USE?
     if(device_using_databus == UNKNOWN) {
-        int highest_priority_device     = UNKNOWN;
-        int highest_datatrate           = -1;
+	int highest_priority_device	= UNKNOWN;
+	int highest_datatrate		= -1;
 
 //  FIND WHICH DEVICE QUEUES HAVE ANY BLOCKED PROCESSES
         for(int dev=0 ; dev<ndevices ; ++dev) {
             if(IO_nblocked[dev] > 0) {
 
 //  FIND WHICH BLOCKED DEVICE QUEUE HAS THE HIGHEST PRIORITY (DATARATE)
-                if(highest_datatrate < device_datarate[dev]) {
-                    highest_datatrate           = device_datarate[dev];
-                    highest_priority_device     = dev;
-                }
+		if(highest_datatrate < device_datarate[dev]) {
+		    highest_datatrate		= device_datarate[dev];
+		    highest_priority_device	= dev;
+		}
             }
         }
 //  IF A PROCESS AWAITS ON THE HIGHEST PRIORITY BLOCKED QUEUE, ACQUIRE DATABUS
-        if(highest_priority_device != UNKNOWN) {
-            device_using_databus        = highest_priority_device;
+	if(highest_priority_device != UNKNOWN) {
+	    device_using_databus	= highest_priority_device;
 
             int datasize    = IO_queue_datasize[device_using_databus][0];
             int usecs       = my_ceiling(
-                (1000000.0*datasize) / device_datarate[device_using_databus]);
-            device_releases_databus     = TIME_NOW + TIME_ACQUIRE_BUS + usecs;
+		(1000000.0*datasize) / device_datarate[device_using_databus]);
+	    device_releases_databus	= TIME_NOW + TIME_ACQUIRE_BUS + usecs;
 
-            LOG("p%i.request_databus",
+	    LOG("p%i.request_databus",
                     process_id[ IO_queue_process[device_using_databus][0] ]);
-        }
+	}
     }
 }
 
@@ -369,21 +380,22 @@ int simulate_job_mix(int TQ)
 {
 //  printf("running simulate_job_mix( time_quantum = %i usecs )\n", TQ);
 
-    int TIME_NOW                = 0;            // microseconds since reboot
+    int TIME_NOW                = 0;		// microseconds since reboot
     int context_switching_until = UNKNOWN;
     int first_proc_ready        = UNKNOWN;
-    int NOW_RUNNING             = UNKNOWN;      // the process on the CPU
-    int nexited                 = 0;            // #processes that have exited
-    int TQused                  = 0;
+    int NOW_RUNNING             = UNKNOWN;	// the process on the CPU
+    int nexited                 = 0;		// #processes that have exited
+    int TQused			= 0;
 
     int time_on_CPU[nprocesses];
-    int next_IO_by_process[nprocesses];
+    int	next_IO_by_process[nprocesses];
 
     init_READY_queue();
     init_IO_queues();
 
 //  LOOP UNTIL ALL PROCESSES HAVE EXITED
     while(nexited < nprocesses) {
+//      printf(" %08i\n", TIME_NOW);
         start_log();
 
         if(TIME_NOW == 0) {
@@ -392,9 +404,9 @@ int simulate_job_mix(int TQ)
 
 //  DO ANY NEW PROCESSES START AT THIS TIME?
         for(int proc=0 ; proc<nprocesses ; ++proc) {
-            if(process_starttime[proc] == TIME_NOW) {   // find all starters
-                time_on_CPU[proc]               = 0;
-                next_IO_by_process[proc]        = 0;
+            if(process_starttime[proc] == TIME_NOW) {	// find all starters
+                time_on_CPU[proc]		= 0;
+                next_IO_by_process[proc]	= 0;
                 append_to_READY_queue(proc, "NEW");
 
                 if(first_proc_ready == UNKNOWN) {
@@ -405,8 +417,8 @@ int simulate_job_mix(int TQ)
 
 //  IS THERE A CURRENT I/O OPERATION FINISHING OR STARTING AT THIS TIME?
         if(ndevices > 0) {
-            manage_IO_queues(TIME_NOW);
-        }
+	    manage_IO_queues(TIME_NOW);
+	}
 
 //  IS THE OS CURRENTLY PERFORMING A CONTEXT-SWITCH => NO RUNNING JOB?
         if(context_switching_until != UNKNOWN) {
@@ -422,11 +434,11 @@ int simulate_job_mix(int TQ)
 
 //  THERE IS A PROCESS (STILL) RUNNING ON THE CPU
         if(NOW_RUNNING != UNKNOWN) {
-            int nextIO  = next_IO_by_process[NOW_RUNNING];
+            int nextIO	= next_IO_by_process[NOW_RUNNING];
 
 //  DOES THIS PROCESS MAKE AN I/O REQUEST AT THIS TIME?
             if(nextIO < process_nIO[NOW_RUNNING] &&
-                   process_IO_requesttime[NOW_RUNNING][nextIO] <= time_on_CPU[NOW_RUNNING]) {
+		   process_IO_requesttime[NOW_RUNNING][nextIO] <= time_on_CPU[NOW_RUNNING]) {
 
                 append_to_IO_queue(process_IO_whichdevice[NOW_RUNNING][nextIO],
                                     NOW_RUNNING,
@@ -493,6 +505,7 @@ void usage(char program[])
 int main(int argcount, char *argvalue[])
 {
     int a = 1;
+argvalue[0]	= "besttq-sample";
 
 //  ACCEPT A NEW -v OPTION TO PRINT VERBOSE OUTPUT
     if(argcount > 1 && strcmp(argvalue[1], "-v") == 0) {
@@ -535,17 +548,14 @@ int main(int argcount, char *argvalue[])
 //  ACROSS EACH OF THE TIME-QUANTA BEING CONSIDERED
 
     int best_TQ     = UNKNOWN;
-    int best_tpct   = (1<<30);          // 2^30,  just a very large number
+    int best_tpct   = (1<<30);		// 2^30,  just a very large number
 
 //  ITERATE OVER EACH REQUESTED TIME_QUANTUM
     for(int TQ=TQ0 ; TQ<=TQfinal ; TQ += TQinc) {
         int this_tpct   = simulate_job_mix(TQ);
 
 //  PRINT THIS TIME_QUANTUM'S RESULT
-        if(verbose) {
-            printf("total_process_completion_time %i %i\n", TQ, this_tpct);
-        }
-//  REMEMBER THE BEST TIME_QUANTUM AND ITS total_process_completion_time
+        printf("total_process_completion_time %i %i\n", TQ, this_tpct);
         if(best_tpct >= this_tpct) {
             best_TQ     = TQ;
             best_tpct   = this_tpct;
@@ -553,11 +563,7 @@ int main(int argcount, char *argvalue[])
     }
 
 //  PRINT THE PROGRAM'S RESULT
-    if(verbose) {
-        printf("# reporting the longest time_quantum resulting in the shortest total_process_completion_time\n");
-    }
-
-//  THIS IS THE ONLY REQUIRED OUTPUT:
+    printf("# reporting the longest time_quantum resulting in the shortest total_process_completion_time\n");
     printf("best %i %i\n", best_TQ, best_tpct);
 
     exit(EXIT_SUCCESS);

@@ -102,7 +102,7 @@ int SIFS_rmfile(const char *volumename, const char *pathname)
             }
             if(parent_block.entries[i].fileindex >= index &&
                 parent_block.entries[i].blockID == file_block) {
-                    
+
                 parent_block.entries[i].fileindex--;
             }
         }
@@ -138,7 +138,7 @@ int SIFS_rmfile(const char *volumename, const char *pathname)
         parent_block.nentries--;
         total_offset = initial_offset + (parent * header.blocksize);
         parent_block.modtime = time(NULL);
-        if(write_block(&parent_block, total_offset, file) != 0) {
+        if(write_dir(&parent_block, total_offset, file) != 0) {
             return(1);
         }
 

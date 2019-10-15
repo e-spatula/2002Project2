@@ -66,6 +66,11 @@ int digest(const char *filename, PATH *filepath) {
         *cur_dir = '\0';
         ndirs++;
     }
+    
+    if(ndirs > SIFS_MAX_ENTRIES) {
+        SIFS_errno = SIFS_EMAXENTRY;
+        return(1);
+    }
     filepath -> dircount = ndirs;
     return(0); 
 }
@@ -90,12 +95,11 @@ int check_dir_entry(int blockno, FILE* file, char *entry, SIFS_BIT req_type) {
         return(-1);
     }
     
-    // SIFS_DIRBLOCK temp_block;
+    
     SIFS_DIRBLOCK  cur_block;
     SIFS_VOLUME_HEADER header;
-    // char tempname[SIFS_MAX_NAME_LENGTH];
     if(read_header(file, &header) != 0) {
-        return(1);
+        return(-1);
     }
 
 
@@ -110,7 +114,7 @@ int check_dir_entry(int blockno, FILE* file, char *entry, SIFS_BIT req_type) {
     DIR_ENTRIES dir_entries;
 
     if(get_entries(&cur_block, &dir_entries, file) != 0) {
-        return(1);
+        return(-1);
     }   
 
     for(int i = 0; i < dir_entries.nentries; i++) {
@@ -322,8 +326,34 @@ int write_bitmap(SIFS_BIT *bitmap, SIFS_VOLUME_HEADER *header, FILE *file) {
     return(0);
 }
 
-int write_block(SIFS_DIRBLOCK *block, int offset, FILE *file) {
+int write_dir(SIFS_DIRBLOCK *block, int offset, FILE *file) {
     fseek(file, offset, SEEK_SET);
     fwrite(block, sizeof(SIFS_DIRBLOCK), 1, file);
     return(0);
 }
+
+int find_parent_block(int block, SIFS_VOLUME_HEADER *header,
+    SIFS_BIT *bitmap, FILE * file) {
+        
+        SIFS_DIRBLOCK dir;
+        const int initial_offset = sizeof(SIFS_VOLUME_HEADER) + 
+            (sizeof(SIFS_BIT) * header -> nblocks);
+        int total_offset;
+
+        for(int i = 0; i < header -> nblocks; i++) {
+            if(*bitmap == SIFS_DIR) {
+                total_offset = initial_offset + (i * header -> blocksize);
+
+                if(read_dir_block(file, &dir, total_offset) != 0) {
+                    return(1);
+                }
+                for(int j = 0; j < dir.nentries; j++) {
+                    if(dir.entries[j].blockID == block) {
+                        return(i);
+                    }
+                }
+            }
+            bitmap++;
+        }
+        return(-1);
+    } 
