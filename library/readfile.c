@@ -20,7 +20,7 @@ int SIFS_readfile(const char *volumename, const char *pathname,
         return(1);
     }
 
-    if(set_dir_blocks(&filepath, file, false) != 0) {
+    if(set_dir_blocks(&filepath, file, true) != 0) {
         fclose(file);
         return(1);
     }
@@ -42,7 +42,7 @@ int SIFS_readfile(const char *volumename, const char *pathname,
     int parent_block = filepath.blocks[dircount - 2];
  
     int file_block = check_dir_entry(parent_block, file, 
-        filepath.entries[dircount - 1], SIFS_FILE);
+        filepath.entries[dircount - 1]);
         
     if(file_block < 0) {
         SIFS_errno = SIFS_ENOENT;

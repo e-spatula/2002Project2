@@ -1,6 +1,6 @@
 #include "sifs-internal.h"
 
-// add a copy of a new file to an existing volume
+// Add a copy of a new file to an existing volume
 int SIFS_writefile(const char *volumename, const char *pathname,
 		   void *data, size_t nbytes)
 {
@@ -36,13 +36,13 @@ int SIFS_writefile(const char *volumename, const char *pathname,
         return(1);
     }
 
-    // generate the MD5 hash for the new file
+    // Generate the MD5 hash for the new file
     unsigned char md5[MD5_BYTELEN];
  
     MD5_buffer(data, nbytes, md5);
 
     /*
-    check if a file with the same MD5 hash exists and if it does 
+    Check if a file with the same MD5 hash exists and if it does 
     add the file to its entries and rewrite it to the volume
     */
     const int initial_offset = sizeof(header) + sizeof(bitmap);
@@ -54,7 +54,7 @@ int SIFS_writefile(const char *volumename, const char *pathname,
     int parent_entries;
     char* filename = filepath.entries[entry_count - 1];
 
-    // check if a file with the same MD5 hash exists
+    // Check if a file with the same MD5 hash exists
     for(int i = 0; i < header.nblocks; i++) {
         if(bitmap[i] == SIFS_FILE) {
             total_offset = initial_offset + (i * header.blocksize);
@@ -66,7 +66,10 @@ int SIFS_writefile(const char *volumename, const char *pathname,
                     return(1);
                 }
                 
-                // Check for a file with the same name and MD5 hash
+                /*
+                If a file with the same name and MD5 hash exists simply skip
+                writing it
+                */
                 bool duplicate_name = false;
                 for(int j = 0; j < temp_nfiles; j++) {
                     if(strcmp(temp_block.filenames[j],
@@ -74,7 +77,7 @@ int SIFS_writefile(const char *volumename, const char *pathname,
                         duplicate_name = true;
                     }
                 }
-                // If there is a file with a duplicated name and MD5 simply skip writing it
+                
                 if((!duplicate_name)) {
                     strcpy(temp_block.filenames[temp_nfiles],
                         filename); 
@@ -83,7 +86,6 @@ int SIFS_writefile(const char *volumename, const char *pathname,
                     // find the parent block and add the file entry
                     parent_block = find_parent_block(i, &header, bitmap, file); 
                     if(parent_block < 0) {
-                        SIFS_errno = SIFS_ENOENT;
                         fclose(file);
                         return(1);
                     }
@@ -104,7 +106,9 @@ int SIFS_writefile(const char *volumename, const char *pathname,
                     }
                     parent_dir.modtime = time(NULL);
                     parent_dir.entries[parent_entries].blockID = i;
-                    parent_dir.entries[parent_entries].fileindex = temp_block.nfiles - 1;
+                    parent_dir.entries[parent_entries].fileindex = 
+                    temp_block.nfiles - 1;
+                    
                     parent_dir.nentries++;
                     
                     // Write the directory and the file to the volume
@@ -118,9 +122,10 @@ int SIFS_writefile(const char *volumename, const char *pathname,
         }
     }
 
-    // Another file with the same MD5 hash doesn't exist
-
-    // Calculate the number of blocks required and search the volume for them 
+    /*
+    Otherwise the file does not exist yet on the volume, search the volume for
+    sufficient blocks to contain the file
+    */ 
     float temp_blocks = nbytes / (float) header.blocksize;
     temp_blocks += 0.9999999999999999;
     int blocks = (int) temp_blocks;
@@ -134,13 +139,11 @@ int SIFS_writefile(const char *volumename, const char *pathname,
         bitmap[i] = SIFS_DATABLOCK;
     }
 
-    // Write the bitmap 
 
-    if(write_bitmap(bitmap, &header, file) != 0) {
+    if(check_collisions(&filepath, file) != 0) {
         fclose(file);
         return(1);
     }
-
     parent_block = filepath.blocks[entry_count - 2];
     total_offset = initial_offset + (header.blocksize * parent_block);
     if(read_dir_block(file, &parent_dir, total_offset) != 0) {
@@ -186,8 +189,18 @@ int SIFS_writefile(const char *volumename, const char *pathname,
     // Write the actual data
     total_offset += header.blocksize;
     fseek(file, total_offset, SEEK_SET);
-    fwrite(data, nbytes, 1, file);
-    
+    if(fwrite(data, nbytes, 1, file) != 1) {
+        SIFS_errno = SIFS_EINVAL;
+        return(1);
+    }
+
+     // Write the bitmap 
+
+    if(write_bitmap(bitmap, &header, file) != 0) {
+        fclose(file);
+        return(1);
+    }
+
     fclose(file);
     return(0);
 }

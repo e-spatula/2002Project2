@@ -1,6 +1,6 @@
 #include "sifs-internal.h"
 
-// remove an existing file from an existing volume
+// Remove an existing file from an existing volume
 int SIFS_rmfile(const char *volumename, const char *pathname)
 {
     if(strlen(pathname) == 0) {
@@ -19,7 +19,7 @@ int SIFS_rmfile(const char *volumename, const char *pathname)
         return(1);
     }
 
-    if(set_dir_blocks(&filepath, file, false) != 0) {
+    if(set_dir_blocks(&filepath, file, true) != 0) {
         fclose(file);
         return(1);
     }
@@ -74,7 +74,7 @@ int SIFS_rmfile(const char *volumename, const char *pathname)
         return(1);
     }
 
-    // find the entry in the parent where the file is stored
+    // Find the entry in the parent where the file is stored
     int parent_index = -1;
     for(int i = 0; i < parent_block.nentries; i++) {
         if(parent_block.entries[i].blockID == file_block) {
@@ -97,8 +97,11 @@ int SIFS_rmfile(const char *volumename, const char *pathname)
         total_offset = initial_offset + (header.blocksize * file_block);
         for(int i = 0; i < parent_block.nentries; i++) {
             if(i >= parent_index) {
-                parent_block.entries[i].blockID = parent_block.entries[i + 1].blockID;
-                parent_block.entries[i].fileindex = parent_block.entries[i + 1].fileindex;  
+                parent_block.entries[i].blockID = 
+                    parent_block.entries[i + 1].blockID;
+
+                parent_block.entries[i].fileindex = 
+                    parent_block.entries[i + 1].fileindex;  
             }
             if(parent_block.entries[i].fileindex >= index &&
                 parent_block.entries[i].blockID == file_block) {
@@ -120,7 +123,7 @@ int SIFS_rmfile(const char *volumename, const char *pathname)
             return(1);
         }
 
-        // shift all the entries below the deleted file up one place
+        // Shift all the entries below the deleted file up one place
         for(int i = parent_index; i < parent_block.nentries; i++) {
             SIFS_BLOCKID next_id = parent_block.entries[i + 1].blockID;
             uint32_t next_index = parent_block.entries[i + 1].fileindex;	
@@ -128,11 +131,16 @@ int SIFS_rmfile(const char *volumename, const char *pathname)
             parent_block.entries[i].fileindex = next_index;
         }
 
-        // zero the block
+        // Zero the block
         total_offset = initial_offset + (file_block * header.blocksize);
         fseek(file, total_offset, SEEK_SET);
         char clear_byte = '0';
-        fwrite(&clear_byte, sizeof(char), sizeof(SIFS_FILEBLOCK), file);
+        if(fwrite(&clear_byte, sizeof(char), sizeof(SIFS_FILEBLOCK), file)
+            != sizeof(SIFS_FILEBLOCK)) {
+
+            SIFS_errno = SIFS_EINVAL;
+            return(1);
+        }
     }
 
         parent_block.nentries--;

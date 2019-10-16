@@ -114,13 +114,13 @@ int main(int argcount, char *argvalue[])
     SIFS_errno = SIFS_EOK;
 
     printf("Should succeed\n");
-    SIFS_rmdir("volD", "subdir2/rhee");
+    SIFS_rmdir("volD", "\\subdir2\\rhee");
     SIFS_perror("Error ");
     printf("\n");
     SIFS_errno = SIFS_EOK;
 
     printf("Should succeed\n");
-    SIFS_rmdir("volD", "subdir2");
+    SIFS_rmdir("volD", "\\subdir2");
     SIFS_perror("Error ");
     printf("\n");
 

@@ -74,7 +74,7 @@ extern void initialise_path(PATH *);
 extern int set_dir_blocks(PATH*, FILE*, bool);
 extern int read_dir_block(FILE* , SIFS_DIRBLOCK *, int);
 extern int read_file_block(FILE* , SIFS_FILEBLOCK *, int);
-extern int check_dir_entry(int , FILE* , char *, SIFS_BIT);
+extern int check_dir_entry(int , FILE* , char *);
 extern int find_unused_blocks(int , FILE*);
 extern int write_new_dir(int, PATH *, FILE *);
 extern int check_collisions(PATH *, FILE *);

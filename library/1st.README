@@ -9,7 +9,7 @@ HAS BEEN PROVIDED FOR YOU;  UNDERSTAND IT, BUT DON'T CHANGE IT.
 YOU WILL NEED TO COMPLETE THE API IMPLEMENTATIONS OF:
     mkdir.c done
     dirinfo.c done
-    rmdir.c
+    rmdir.c done
 
     writefile.c
     readfile.c done
