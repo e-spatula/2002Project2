@@ -86,17 +86,43 @@ int main(int argcount, char *argvalue[])
     // SIFS_perror("Error ");
 
 
-   FILE *file = fopen("clean.sh", "r");
-   struct stat stats;
-    if(stat("clean.sh", &stats) == 0) {
-        size_t size = stats.st_size;
-        void *data = malloc(size);
-        fread(data, size, 1, file);
-        SIFS_writefile("volD", "/subdir1/rhee.c", data, size);
-        SIFS_perror("Error ");
-    }
+//    FILE *file = fopen("clean.sh", "r");
+//    struct stat stats;
+//     if(stat("clean.sh", &stats) == 0) {
+//         size_t size = stats.st_size;
+//         void *data = malloc(size);
+//         fread(data, size, 1, file);
+//         SIFS_writefile("volD", "/subdir1/rhee.c", data, size);
+//         SIFS_perror("Error ");
+//     }
+    printf("Should succeed\n");
+    SIFS_mkdir("volD", "subdir2/rhee");
+    SIFS_perror("Error ");
+    printf("\n");
+    SIFS_errno = SIFS_EOK;
 
+    printf("Should fail\n");
+    SIFS_rmdir("volD", "/subdir2");
+    SIFS_perror("Error ");
+    printf("\n");
+    SIFS_errno = SIFS_EOK;
     
+    printf("Should fail\n");
+    SIFS_rmdir("volD", "subdir/rhee");
+    SIFS_perror("Error ");
+    printf("\n");
+    SIFS_errno = SIFS_EOK;
+
+    printf("Should succeed\n");
+    SIFS_rmdir("volD", "subdir2/rhee");
+    SIFS_perror("Error ");
+    printf("\n");
+    SIFS_errno = SIFS_EOK;
+
+    printf("Should succeed\n");
+    SIFS_rmdir("volD", "subdir2");
+    SIFS_perror("Error ");
+    printf("\n");
 
     return(0);
 }

@@ -37,7 +37,7 @@ int digest(const char *filename, PATH *filepath) {
     cur_dir = filepath -> entries[ndirs];
 
     // if the path starts with a / ignore it
-    if(*filename == '/') {
+    if(*filename == '/' || *filename == '\\') {
         filename++;
     } 
 
@@ -248,7 +248,8 @@ int check_collisions(PATH *path, FILE *file) {
     
     parent_block = path -> blocks[dircount - 2];
     
-    if(check_dir_entry(parent_block, file, entry, SIFS_DIR) != -1) {
+    if(check_dir_entry(parent_block, file, entry, SIFS_DIR) != -1 ||
+    check_dir_entry(parent_block, file, entry, SIFS_FILE) != -1) {
         SIFS_errno = SIFS_EEXIST;
         return(1);
     }
