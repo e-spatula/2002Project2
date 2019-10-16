@@ -78,7 +78,7 @@ int digest(const char *pathname, PATH *filepath) {
     int dirlength = 0;
     
     // add root to the path 
-    cur_dir = '\0';
+    *cur_dir = '\0';
     ndirs++;
     cur_dir = filepath -> entries[ndirs];
 
@@ -537,4 +537,5 @@ int find_parent_block(int block, SIFS_VOLUME_HEADER *header,
         }
         SIFS_errno = SIFS_ENOENT;
         return(-1);
-    } 
+    }
+ 

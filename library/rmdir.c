@@ -75,16 +75,22 @@ int SIFS_rmdir(const char *volumename, const char *pathname)
 
     //  delete the directory entry and shift everything below it up
     bool index_found = false;
-    for(int i = 0; i < parent_dir.nentries - 1; i++) {
+    for(int i = 0; i < parent_dir.nentries; i++) {
         if(parent_dir.entries[i].blockID == dir_block) {
             index_found = true;
         }
 
-        if(index_found) {
+        if(index_found && i > parent_dir.nentries - 1) {
             SIFS_BLOCKID next_id = parent_dir.entries[i + 1].blockID;
             uint32_t next_fileindex = parent_dir.entries[i + 1].fileindex;
             parent_dir.entries[i].blockID = next_id;
             parent_dir.entries[i].fileindex = next_fileindex;
+        }
+        // If for some reason we couldn't find the directory in its parent
+        if((!index_found)) {
+            SIFS_errno = SIFS_ENOENT;
+            fclose(file);
+            return(1);
         }
     }
 
@@ -102,8 +108,8 @@ int SIFS_rmdir(const char *volumename, const char *pathname)
     char clear = '\0';
     if(fwrite(&clear, sizeof(char), sizeof(SIFS_DIRBLOCK), file)
         != sizeof(SIFS_DIRBLOCK)) {
-            
-        SIFS_errno = SIFS_ENOSPC;
+
+        SIFS_errno = SIFS_EINVAL;
         fclose(file);
         return(1);
     }
