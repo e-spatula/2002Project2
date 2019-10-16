@@ -119,10 +119,42 @@ int main(int argcount, char *argvalue[])
     printf("\n");
     SIFS_errno = SIFS_EOK;
 
-    printf("Should succeed\n");
-    SIFS_rmdir("volD", "\\subdir2");
+    printf("Should fail\n");
+    SIFS_rmdir("volD", "/");
     SIFS_perror("Error ");
     printf("\n");
+
+    // SIFS_errno = SIFS_EOK;
+    // size_t length;
+    // time_t modtime;
+
+    // SIFS_fileinfo("volD", "sifs_mkvolume.c", &length, &modtime);
+    // SIFS_perror("Error");
+
+    // printf("Modtime is : %li\n", modtime);
+    // printf("Length is : %li\n", length);
+
+    // FILE *file = fopen("library/helper.c", "r");
+    // struct stat stats;
+    // if(stat("clean.sh", &stats) == 0) {
+    //     size_t size = stats.st_size;
+    //     printf("Size is %li\n", size);
+    //     printf("Creation time is %li\n", time(NULL));
+    //     void *data = malloc(size);
+    //     fread(data, size, 1, file);
+    //     SIFS_writefile("volD", "/subdir1/helper.c", data, size);
+    //     SIFS_perror("Error ");
+    // }
+
+    // SIFS_errno = SIFS_EOK;
+
+
+    // SIFS_fileinfo("volD", "subdir1/helper.c", &length, &modtime);
+    // SIFS_perror("Error");
+
+    // printf("Modtime is : %li\n", modtime);
+    // printf("Length is : %li\n", length);
+    
 
     return(0);
 }

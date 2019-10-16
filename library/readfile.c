@@ -58,7 +58,7 @@ int SIFS_readfile(const char *volumename, const char *pathname,
     *nbytes = file_to_read.length;
 
     
-    // ensure that the file pointer is in the correct position
+    // Ensure that the file pointer is in the correct position
     total_offset += header.blocksize;
     fseek(file, total_offset, SEEK_SET);
 
@@ -69,7 +69,10 @@ int SIFS_readfile(const char *volumename, const char *pathname,
         return(1);
     }
 
-    fread(*data, *nbytes, 1, file);
+    if(fread(*data, *nbytes, 1, file) != 1) {
+        SIFS_errno = SIFS_EINVAL;
+        return(1);
+    }
     fclose(file);
     return(0);
 }

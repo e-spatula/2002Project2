@@ -20,7 +20,7 @@ int SIFS_fileinfo(const char *volumename, const char *pathname,
         return(1);
     }
 
-    if(set_dir_blocks(&filepath, file, false) != 0) {
+    if(set_dir_blocks(&filepath, file, true) != 0) {
         fclose(file);
         return(1);
     }
