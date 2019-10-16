@@ -49,18 +49,20 @@ int SIFS_rmdir(const char *volumename, const char *dirname)
         return 1;
     }
 
-    //Parent block of the removed block
+    //Parent block of the block to be removed
     SIFS_DIRBLOCK parent_block;
     if(read_dir_block(file,&parent_block,total_offset)!=0){
         fclose(file);
         return 1;
     }
 
+    //get the directory entries for the parent block of the file
     DIR_ENTRIES directory_entries;
     if(get_entries(&parent_block, &directory_entries,file)!=0){
         fclose(file);
         return 1;
     }
+
     //remove the element from the parents entries cleaning the entries array
         for(int index = 0; index<directory_entries.nentries; index++){
         if(directory_entries.entries[index]==dirname){
@@ -72,10 +74,15 @@ int SIFS_rmdir(const char *volumename, const char *dirname)
                     index+1];
                     index++;
             }
+            //decrement the number of entries in the parent block 
             *directory_entries.entries[directory_entries.nentries]=NULL;
             directory_entries.nentries--;
         }
     }
+
+    //set the directory block in the bitmap to unused
+    bitmap[parent_block_number+1]== SIFS_UNUSED;
+
     //memset location of the block removed
     int start = total_offset+header.blocksize;
     for(int index = start; index < start + 2* start; index++){
