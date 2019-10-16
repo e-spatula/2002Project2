@@ -4,7 +4,16 @@
 
 #include "sifs-internal.h"
 
-// make a new volume
+/*
+* Create a new volume, specifying the block size and the number of blocks
+* available for allocation
+* 
+* @param const char *volumename - name of the volume that the directory is made in
+* @param size_t blocksize - in bytes
+* @param uint32_t nblocks - 32 bit integer representing the number of blocks 
+* available in the volume
+* @return int - returns integer indicating success or failure of the function
+*/
 int SIFS_mkvolume(const char *volumename, size_t blocksize, uint32_t nblocks)
 {
 //  ENSURE THAT RECEIVED PARAMETERS ARE VALID

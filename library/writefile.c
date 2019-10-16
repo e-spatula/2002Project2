@@ -1,6 +1,14 @@
 #include "sifs-internal.h"
 
-// Add a copy of a new file to an existing volume
+/* 
+* Add a copy of a new file to an existing volume
+*
+* @param const char *volumename - name of the volume 
+* @param const char *pathname - path to the file in the volume
+* @param void *data - pointer to the data blocks associated with the file
+* @param size_t nbytes - size in bytes of the file
+* @return int - returns an integer indicating success or failure of the function
+*/
 int SIFS_writefile(const char *volumename, const char *pathname,
 		   void *data, size_t nbytes)
 {

@@ -1,6 +1,16 @@
 #include "sifs-internal.h"
 
-// get information about a requested directory
+/* 
+* Function to update the directory information 
+*
+* @param const char *volumename - the name of a volume 
+* @param const char *pathname - the path of the directory
+* @param char ***entrynames - entry names of the elements 
+* @param uint_32_t *nentries - number of entries as a positive 32 bit integer
+* @param time_t *modtime - records last modification time in seconds of the function
+* @return int - integer result of 1 if the function fails or 0 indicating success
+*/
+
 int SIFS_dirinfo(const char *volumename, const char *pathname,
                  char ***entrynames, uint32_t *nentries, time_t *modtime) {
     FILE* file = open_volume(volumename);

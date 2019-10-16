@@ -1,6 +1,14 @@
 #include "sifs-internal.h"
 
-// read the contents of an existing file from an existing volume
+/*
+* Read the contents of a file in a volume
+* 
+* @param const char *volumename - name of the volume the file is in
+* @param const char *pathname - path to the file in the volume
+* @param void **data - data blocks associated with the file being read
+* @param size_t *nbytes - size of the file in bytes 
+* @return int - returns an integer indicating success or failure of the function
+*/
 int SIFS_readfile(const char *volumename, const char *pathname,
 		  void **data, size_t *nbytes)
 {
