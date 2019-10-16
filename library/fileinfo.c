@@ -77,3 +77,5 @@ int SIFS_fileinfo(const char *volumename, const char *pathname,
     fclose(file);
     return(0);
 }
+
+
