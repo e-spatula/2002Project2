@@ -1,6 +1,13 @@
 #include "helper.h"
 
-// opens a volume
+/* 
+* Open a volume with read privileges, throwing an error if the file cannot be 
+* opened
+*
+* @param const char *volumename - constant character pointer to a volume name 
+* @return FILE - returns the volume as a FILE type struct
+*
+*/
 FILE *open_volume(const char *volumename) {
     FILE *file;
     file = fopen(volumename, "r+");
@@ -10,7 +17,14 @@ FILE *open_volume(const char *volumename) {
     return(file);
 }
 
-
+/* 
+* Read the header of a volume
+*
+* @param FILE *file - file pointer to a FILE type struct
+* @param SIFS_VOLUME_HEADER *header - pointer to a header type struct
+* @return int - returns integer indicating success or failure of the function
+*
+*/
 int read_header(FILE *file, SIFS_VOLUME_HEADER *header) {
     rewind(file);
     if(fread(header, sizeof(SIFS_VOLUME_HEADER), 1, file) != 1) {
@@ -20,6 +34,14 @@ int read_header(FILE *file, SIFS_VOLUME_HEADER *header) {
     return(0);
 } 
 
+/* 
+* Function to read the bitmap asscociated with a file
+*
+* @param FILE *file - file pointer to a FILE type struct
+* @param SIFS_BIT *bitmap - pointer to a bitmap type struct for a file
+* @return int - returns integer indicating success or failure of the function
+*
+*/
 int read_bitmap(FILE *file, SIFS_BIT *bitmap, SIFS_VOLUME_HEADER *header) {
     fseek(file, sizeof(SIFS_VOLUME_HEADER), SEEK_SET);
     for(int i = 0; i < header -> nblocks; i++) {
@@ -32,17 +54,31 @@ int read_bitmap(FILE *file, SIFS_BIT *bitmap, SIFS_VOLUME_HEADER *header) {
     return(0);
 }
 
+/* 
+* Initialise a filepath by ensuring that all bits along the path are set to 0
+*
+* @param PATH *filepath - pointer to a PATH type struct
+*
+*/
 void initialise_path(PATH *filepath) {
     memset(filepath, 0, sizeof(PATH));
 }
 
+/* 
+* Break down a pathname string into directories, storing in a PATH struct
+* 
+* @param const char *pathname - file pointer to a FILE type struct
+* @param PATH *filepath - pointer to a filepath type struct
+* @return int - returns integer indicating success or failure of the function
+*
+*/
 int digest(const char *pathname, PATH *filepath) {
     int ndirs = 0;
     char *cur_dir = filepath -> entries[ndirs];
     int dirlength = 0;
     
     // add root to the path 
-    cur_dir = '\0';
+    *cur_dir = '\0';
     ndirs++;
     cur_dir = filepath -> entries[ndirs];
 
@@ -87,7 +123,16 @@ int digest(const char *pathname, PATH *filepath) {
     return(0); 
 }
 
-
+/* 
+* Read the block of a given direcory block at an integer offset from the 
+* start of the volume
+*
+* @param FILE *file - file pointer to a FILE type struct
+* @param SIFS_DIRBLOCK *dir - pointer to a directory block type struct
+* @param int - offset of a block from the origin block of a volume
+* @return int - returns integer indicating success or failure of the function
+*
+*/
 int read_dir_block(FILE* file, SIFS_DIRBLOCK *dir, int offset) {
     fseek(file, offset, SEEK_SET);
     if(fread(dir, sizeof(SIFS_DIRBLOCK), 1, file) != 1) {
@@ -97,6 +142,16 @@ int read_dir_block(FILE* file, SIFS_DIRBLOCK *dir, int offset) {
     return(0);
 }
 
+/* 
+* Read the block of a given file block at an integer offset from the 
+* start of the volume
+*
+* @param FILE *file - file pointer to a FILE type struct
+* @param SIFS_FILEBLOCK *file_block - pointer to a file block type struct
+* @param int - offset of a block from the origin block of a volume
+* @return int - returns integer indicating success or failure of the function
+*
+*/
 int read_file_block(FILE* file, SIFS_FILEBLOCK *file_block, int offset) {
     fseek(file, offset, SEEK_SET);
     if(fread(file_block, sizeof(SIFS_FILEBLOCK), 1, file) != 1) {
@@ -106,7 +161,16 @@ int read_file_block(FILE* file, SIFS_FILEBLOCK *file_block, int offset) {
     return(0);
 }
 
-// function returns -1 as 0 is a valid index
+/* 
+* Check the directory entries of a file returning the index of a directory
+* block if it is a valid entry in the volume
+*
+* @param int - block number of the directory
+* @param FILE *file - file pointer to a FILE type struct
+* @param char *entry - pointer to a string name of the entry
+* @return int - returns integer representing the position of the block or -1 if
+* the directory block isnt in the file or has an invalid block number
+*/
 int check_dir_entry(int blockno, FILE* file, char *entry) {
     if(blockno < 0 || blockno > SIFS_MAX_ENTRIES) {
         SIFS_errno = SIFS_EINVAL;
@@ -144,6 +208,16 @@ int check_dir_entry(int blockno, FILE* file, char *entry) {
  return(-1);
 }
 
+/* 
+* Sets the directory blocks of a file
+*
+* @param PATH *path - pointer to a path type struct
+* @param FILE *file - file pointer to a FILE type struct
+* @param bool check_all_entries - boolean value indicating whether you search all,
+* blocks on the path
+* @return int - returns integer indicating success or failure of the function
+*
+*/
 int set_dir_blocks(PATH *path, FILE* file, bool check_all_entries) {
         // Set root block
         path -> blocks[0] = SIFS_ROOTDIR_BLOCKID;
@@ -171,6 +245,15 @@ int set_dir_blocks(PATH *path, FILE* file, bool check_all_entries) {
     return(0);
 }
 
+/* 
+* Finds the first free location in the volume of a certain length in blocks
+*
+* @param int nblocks - number of blocks required for storage
+* @param FILE *file - file pointer to a FILE type struct
+* @return int nblocks - returns integer representing the first block in the sequence
+* of free blocks or -1 if there is no space to fit consecutive blocks in the volume
+*
+*/
 int find_unused_blocks(int nblocks, FILE * file) {
     
     SIFS_VOLUME_HEADER header;
@@ -203,6 +286,16 @@ int find_unused_blocks(int nblocks, FILE * file) {
     return(-1);
 }
 
+/* 
+* Function to write a new directory in a specified block of a volume
+*
+* @param int block - block position for the directory to be written to
+* @param PATH *filepath - pointer to the filepath that the directory is written
+* onto
+* @param FILE *file - file pointer to a FILE type struct
+* @return int - returns integer indicating success or failure of the function
+*
+*/
 int write_new_dir(int block, PATH *filepath, FILE *file) {
     SIFS_VOLUME_HEADER header; 
     SIFS_DIRBLOCK dir;
@@ -258,15 +351,20 @@ int write_new_dir(int block, PATH *filepath, FILE *file) {
     }
 
     // write the bitmap
-
     if(write_bitmap(bitmap, &header, file) != 0) {
-        return(0);
+        return(1);
     }
-
-
     return(0);
 }
 
+/* 
+* Function to check collisions along a path
+*
+* @param PATH *path - pointer to PATH type struct
+* @param FILE *file - file pointer to a FILE type struct
+* @return int - returns integer indicating success or failure of the function
+*
+*/
 int check_collisions(PATH *path, FILE *file) {
     int parent_block;
     int dircount = path -> dircount;
@@ -281,6 +379,16 @@ int check_collisions(PATH *path, FILE *file) {
     return(0);
 } 
 
+/* 
+* Retrieve all entries in a specified directory, referencing them in a new 
+* directory entries structure
+*
+* @param DIRBLOCK *block - pointer to DIRBLOCK type struct
+* @param DIR_ENTRIES *dir_entries - pointer to a DIR_ENTRIES type struct
+* @param FILE *file - file pointer to a FILE type struct
+* @return int - returns integer indicating success or failure of the function
+*
+*/
 int get_entries(SIFS_DIRBLOCK *block, DIR_ENTRIES *dir_entries, FILE *file) {
     
     SIFS_DIRBLOCK temp_dir;
@@ -336,6 +444,16 @@ int get_entries(SIFS_DIRBLOCK *block, DIR_ENTRIES *dir_entries, FILE *file) {
     return(0);
 }
 
+/* 
+* Write a file to a volume
+*
+* @param SIFS_FILEBLOCK *file_block - pointer to a fileblock to be written 
+* to the volume
+* @param int offset - integer offset amount indicating position in the volume
+* @param FILE *file - pointer to a FILE type struct
+* @return int - returns integer indicating success or failure of the function
+*
+*/
 int write_file(SIFS_FILEBLOCK *file_block, int offset, FILE *file) {
     
     fseek(file, offset, SEEK_SET);
@@ -344,6 +462,16 @@ int write_file(SIFS_FILEBLOCK *file_block, int offset, FILE *file) {
     return(0);
 }
 
+/* 
+* Write the bitmap to reflect the size of the volume outlined in the volume header
+*
+* @param SIFS_BIT *bitmap - pointer to the bitmap structure of the volume
+* @param SIFS_VOLUME_HEADER *header - pointer to the volume header struct of the 
+* volume
+* @param FILE *file - pointer to the volume's FILE type struct
+* @return int - returns integer indicating success or failure of the function
+*
+*/
 int write_bitmap(SIFS_BIT *bitmap, SIFS_VOLUME_HEADER *header, FILE *file) {
     
     int offset = sizeof(SIFS_VOLUME_HEADER);
@@ -358,6 +486,16 @@ int write_bitmap(SIFS_BIT *bitmap, SIFS_VOLUME_HEADER *header, FILE *file) {
     return(0);
 }
 
+/* 
+* Write a directory in a volume
+*
+* @param SIFS_DIRBLOCK *block - pointer to a directory block to be written to
+* the volume
+* @param int *offset - integer offset amount indicating position in the volume
+* @param FILE *file - pointer to the volume's FILE type struct
+* @return int - returns integer indicating success or failure of the function
+*
+*/
 int write_dir(SIFS_DIRBLOCK *block, int offset, FILE *file) {
     fseek(file, offset, SEEK_SET);
     if(fwrite(block, sizeof(SIFS_DIRBLOCK), 1, file) != 1) {
@@ -367,6 +505,18 @@ int write_dir(SIFS_DIRBLOCK *block, int offset, FILE *file) {
     return(0);
 }
 
+/* 
+* Function to find the block number of the parent block of a directory
+*
+* @param int block - block number of the directory to find the parent
+* @param SIFS_VOLUME_HEADER *header - integer offset amount indicating position 
+* in the volume
+* @param SIFS_BIT *bitmap - pointer to the volume's bitmap 
+* @param FILE *file - pointer to the volume's FILE type struct
+* @return int - returns block number of the parent directory or -1 if the 
+* function fails
+*
+*/
 int find_parent_block(int block, SIFS_VOLUME_HEADER *header,
     SIFS_BIT *bitmap, FILE * file) {
         
@@ -392,4 +542,5 @@ int find_parent_block(int block, SIFS_VOLUME_HEADER *header,
         }
         SIFS_errno = SIFS_ENOENT;
         return(-1);
-    } 
+    }
+ 

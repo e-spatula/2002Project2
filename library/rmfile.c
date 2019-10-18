@@ -1,6 +1,12 @@
 #include "helper.h"
 
-// Remove an existing file from an existing volume
+/*
+* Remove an existing file from an existing volume
+*
+* @param const char *volumename - name of the volume that directory is in
+* @param const char *pathname - path from root to the directory to be removed
+* @return int - returns an integer indicating success or failure of the function
+*/
 int SIFS_rmfile(const char *volumename, const char *pathname)
 {
     if(strlen(pathname) == 0) {
