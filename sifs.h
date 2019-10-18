@@ -7,11 +7,14 @@
 #include <string.h>
 #include <stdbool.h>
 
+//  CITS2002 Project 2 2019
+//  Name(s):             Edward Atkinson , Jack Travers
+//  Student number(s):   22487668 , 22244157
+
 //  THE SINGLE INSTANCE FILE SYSTEM (SIFS) APPLICATION PROGRAMMING INTERFACE (API)
 
 //  DO NOT CHANGE ANYTHING IN THIS FILE -
 //  YOU MAY ADD THINGS, BUT DON'T CHANGE ANYTHING (else your project can't be tested)
-
 
 //  MAKE A NEW VOLUME
 extern	int SIFS_mkvolume(const char *volumename, size_t blocksize, uint32_t nblocks);
