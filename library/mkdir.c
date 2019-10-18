@@ -4,9 +4,9 @@
 * Create a new directory in a given volume, with a provided pathname to the new
 directory
 * 
-* @param const char *volumename - name of the volume that the directory is made in
-* @param const char *pathname - path from root to the new directory
-* @return int - returns integer indicating success or failure of the function
+* @param const char *volumename - name of the volume to make directory in
+* @param const char *pathname - path to the new directory on the volume
+* @return int - Returns 0 on success 1 on failure
 */
 int SIFS_mkdir(const char *volumename, const char *pathname)
 {

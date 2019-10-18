@@ -3,11 +3,13 @@
 /* 
 * Retrieve information available about a file
 *
-* @param const char *volumename - constant character pointer to a volume name 
-* @param const char *pathname - constant character pointer to a path name 
-* @param size_t *length - integer representing the length of a file
-* @param time_t *modtime - time of the last modification of file
-* @return int - returns integer indicating success or failure of the function
+* @param const char *volumename - name of the volume
+* @param const char *pathname - path to the file 
+* @param size_t *length - pointer to an unsigned int to store the length of
+* file in bytes
+* @param time_t *modtime - pointer to an unsigned int to store the modification
+* time of the file
+* @return int - returns 0 on success and 1 on failure
 */
 
 int SIFS_fileinfo(const char *volumename, const char *pathname,

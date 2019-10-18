@@ -5,9 +5,10 @@
 * 
 * @param const char *volumename - name of the volume the file is in
 * @param const char *pathname - path to the file in the volume
-* @param void **data - data blocks associated with the file being read
-* @param size_t *nbytes - size of the file in bytes 
-* @return int - returns an integer indicating success or failure of the function
+* @param void **data - pointer to a data block where the bytes are written to
+* @param size_t *nbytes - pointer to a unsigned integer to store the size
+  of a file in byte 
+* @return int - returns 0 on success and 1 on failure
 */
 int SIFS_readfile(const char *volumename, const char *pathname,
 		  void **data, size_t *nbytes)

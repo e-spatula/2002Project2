@@ -1,14 +1,14 @@
 #include "helper.h"
 
 /* 
-* Function to update the directory information 
+* Function to fetch directory information
 *
 * @param const char *volumename - the name of a volume 
-* @param const char *pathname - the path of the directory
-* @param char ***entrynames - entry names of the elements 
-* @param uint_32_t *nentries - number of entries as a positive 32 bit integer
-* @param time_t *modtime - records last modification time in seconds of the function
-* @return int - integer result of 1 if the function fails or 0 indicating success
+* @param const char *pathname - the path to the directory
+* @param char ***entrynames - names of the directory's entries 
+* @param uint_32_t *nentries - number of entries in the directory
+* @param time_t *modtime - last modification time of the directory in seconds
+* @return int - returns 0 on success 1 on failure
 */
 
 int SIFS_dirinfo(const char *volumename, const char *pathname,

@@ -3,9 +3,9 @@
 /*
 * Remove an existing file from an existing volume
 *
-* @param const char *volumename - name of the volume that directory is in
-* @param const char *pathname - path from root to the directory to be removed
-* @return int - returns an integer indicating success or failure of the function
+* @param const char *volumename - name of the volume
+* @param const char *pathname - path to the file
+* @return int - returns 0 on success 1 on failure
 */
 int SIFS_rmfile(const char *volumename, const char *pathname)
 {

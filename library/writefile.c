@@ -1,13 +1,13 @@
 #include "helper.h"
 
 /* 
-* Add a copy of a new file to an existing volume
+* Add a new file to an existing volume
 *
 * @param const char *volumename - name of the volume 
 * @param const char *pathname - path to the file in the volume
-* @param void *data - pointer to the data blocks associated with the file
+* @param void *data - pointer to the data to write
 * @param size_t nbytes - size in bytes of the file
-* @return int - returns an integer indicating success or failure of the function
+* @return int - returns 0 on success and 1 on failure
 */
 int SIFS_writefile(const char *volumename, const char *pathname,
 		   void *data, size_t nbytes)

@@ -45,6 +45,11 @@ void test_mkdir(void) {
     SIFS_errno = SIFS_EOK;
     SIFS_mkdir(volume, "SNOOPDOGG");
     assert_equals(SIFS_errno, SIFS_EMAXENTRY);
+
+    // test making a duplicated dir
+    SIFS_errno = SIFS_EOK;
+    SIFS_mkdir(volume, "subdir1");
+    assert_equals(SIFS_errno, SIFS_EEXIST);
 }
 
 void test_dirinfo(void) {
@@ -56,44 +61,94 @@ void test_dirinfo(void) {
     SIFS_errno = SIFS_EOK;
     SIFS_dirinfo(volume, "/", &entrynames, &nentries, &modtime);
     assert_equals(SIFS_errno, 0);
+    SIFS_errno = SIFS_EOK;
     assert_equals(nentries, 5);
+    SIFS_errno = SIFS_EOK;
     assert_equals(modtime, 1569899632);
     char *strings[5] = {"sifs.h", "subdir1", "subdir2", "sifs_mkvolume.c", "besttq-sample.c"};
     for(int i = 0; i < nentries; i++) {
         int result = strcmp(strings[i], entrynames[i]);
         assert_equals(result, 0);
     }
+
+    // test finding a non-existent directory
+    SIFS_errno = SIFS_EOK;
+    SIFS_dirinfo(volume, "blah", &entrynames, &nentries, &modtime);
+    assert_equals(SIFS_errno, SIFS_ENOENT);
+
+    // test finding a different directory
+
+    SIFS_errno = SIFS_EOK;
+    SIFS_mkdir("volD", "subdir1/rhee");
+    SIFS_errno = SIFS_EOK;
+    SIFS_dirinfo(volume, "/subdir1", &entrynames, &nentries, &modtime);
+    assert_equals(SIFS_errno, 0);
+    SIFS_errno = SIFS_EOK;
+    assert_equals(nentries, 1);
+    char *name = "rhee";
+    int result = strcmp(name, entrynames[0]);
+    assert_equals(result, 0);    
+
 }
 
+void test_rmdir(void) {
+    char *volume = "volD";
+    // test removing root
+    SIFS_errno = SIFS_EOK;
+    SIFS_rmdir(volume, "/");
+    assert_equals(SIFS_errno, SIFS_EINVAL);
+
+    // test removing legit directory
+    SIFS_errno = SIFS_EOK;
+    SIFS_rmdir(volume, "\\subdir2");
+    assert_equals(SIFS_errno, SIFS_EOK);
+    
+    // test removing non-existent dir
+    SIFS_errno = SIFS_EOK;
+    SIFS_rmdir(volume, "blah");
+    assert_equals(SIFS_errno, SIFS_ENOENT);
+
+
+    // test removing nested dir    
+    SIFS_errno = SIFS_EOK;
+    SIFS_mkdir(volume, "subdir1/rhee");
+    SIFS_errno = SIFS_EOK;
+    SIFS_rmdir(volume, "subdir1/rhee");
+    assert_equals(SIFS_errno, SIFS_EOK);
+
+    // test removing file
+    SIFS_errno = SIFS_EOK;
+    SIFS_rmdir(volume, "sifs_mkvolume.c");
+    assert_equals(SIFS_errno, SIFS_EINVAL);
+
+}
+
+void test_writefile(void) {
+    char *volume = "volD";
+    FILE *file = fopen("library/helper.c", "r");
+    struct stat stats;
+    stat("library/helper.c", &stats);
+    size_t size = stats.st_size;
+    void *data = malloc(size);
+    fread(data, size, 1, file);
+    size_t info_size;
+    time_t modtime;
+
+    // test writing file that doesn't already exist on the system
+    SIFS_errno = SIFS_EOK;
+    time_t write_time = time(NULL);
+    SIFS_writefile(volume, "/subdir1/helper.c", data, size);
+    assert_equals(SIFS_errno, SIFS_EOK);
+    SIFS_errno = SIFS_EOK;
+    SIFS_fileinfo(volume, "/subdir1/helper.c", &info_size, &modtime);
+    assert_equals(size, info_size);
+    assert_equals(modtime, write_time);
+
+    
+}
 int main(int argcount, char *argvalue[])
 {
     
-    // int total = 0;
-    // int failed = 0;
-    
-    // test_digest(&failed, &total);
-    // print_results(&failed, &total);
-
-    // SIFS_errno = SIFS_EOK;
-    // SIFS_mkdir("volD", "subdir1/eddie");
-    // SIFS_perror("Error value ");
-
-    // SIFS_mkdir("volD", "rhee");
-    // SIFS_perror("Error value ");
-    
-    // SIFS_errno = SIFS_EOK;
-    // uint32_t nentries;
-    // time_t modtime;
-    // char **entrynames = NULL;
-    // SIFS_dirinfo("volD", "", &entrynames, &nentries, &modtime);
-    // printf("Nentries : %i\n", nentries);
-    // printf("Modtime : %li\n", modtime);
-    // if(entrynames != NULL) {
-    //     for(int i = 0; i < nentries; i++) {
-    //         printf("Entry %i : %s\n", i, entrynames[i]);
-    //         free(entrynames[i]);
-    //     }
-    // }
     // size_t length;
     // time_t modtime;
     // SIFS_fileinfo("volD", "besttq-sample.c", &length, &modtime);
@@ -184,7 +239,9 @@ int main(int argcount, char *argvalue[])
     // printf("Modtime is : %li\n", modtime);
     // printf("Length is : %li\n", length);
     
-    test_mkdir();
-    test_dirinfo();
+    // test_mkdir();
+    // test_dirinfo();
+    // test_rmdir();  
+    test_writefile();
     return(0);
 }

@@ -5,7 +5,7 @@
 *
 * @param const char *volumename - name of the volume that directory is in
 * @param const char *pathname - path from root to the directory to be removed
-* @return int - returns an integer indicating success or failure of the function
+* @return int - returns 0 on success 1 on failure
 */
 int SIFS_rmdir(const char *volumename, const char *pathname)
 {
@@ -24,12 +24,12 @@ int SIFS_rmdir(const char *volumename, const char *pathname)
             fclose(file);
             return(1);
         }
-
+        
         if(set_dir_blocks(&filepath, file, true) != 0) {
             fclose(file);
             return(1);
         }
-
+        
         SIFS_VOLUME_HEADER header;
         if(read_header(file, &header) != 0) {
             fclose(file);
@@ -56,7 +56,12 @@ int SIFS_rmdir(const char *volumename, const char *pathname)
     SIFS_DIRBLOCK dir;
     SIFS_DIRBLOCK parent_dir;
 
-
+    // Check if we are actually deleting a diretory
+    if(bitmap[dir_block] != SIFS_DIR) {
+        SIFS_errno = SIFS_EINVAL;
+        return(1);
+    }
+    
     if(read_dir_block(file, &dir, total_offset) != 0) {
         fclose(file);
         return(1);
@@ -67,33 +72,36 @@ int SIFS_rmdir(const char *volumename, const char *pathname)
         fclose(file);
         return(1);
     }
-
+    
     total_offset =  initial_offset + (header.blocksize * parent_block);
     if(read_dir_block(file, &parent_dir, total_offset) != 0) {
         return(1);
     }
 
     //  delete the directory entry and shift everything below it up
-    bool index_found = false;
+
+    int parent_index = -1;
     for(int i = 0; i < parent_dir.nentries; i++) {
         if(parent_dir.entries[i].blockID == dir_block) {
-            index_found = true;
+            parent_index = i;
         }
+    }
+    // If for some reason we couldn't find the directory in its parent
+    if((parent_index < 0)) {
+        SIFS_errno = SIFS_ENOENT;
+        fclose(file);
+        return(1);
+    }
 
-        if(index_found && i > parent_dir.nentries - 1) {
+    for(int i = parent_index; i < parent_dir.nentries; i++) {
+
             SIFS_BLOCKID next_id = parent_dir.entries[i + 1].blockID;
             uint32_t next_fileindex = parent_dir.entries[i + 1].fileindex;
             parent_dir.entries[i].blockID = next_id;
             parent_dir.entries[i].fileindex = next_fileindex;
-        }
-        // If for some reason we couldn't find the directory in its parent
-        if((!index_found)) {
-            SIFS_errno = SIFS_ENOENT;
-            fclose(file);
-            return(1);
-        }
+        
     }
-
+    
     parent_dir.modtime = time(NULL);
     parent_dir.nentries--;
 
