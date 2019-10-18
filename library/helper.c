@@ -1,4 +1,4 @@
-#include "sifs-internal.h"
+#include "helper.h"
 
 // opens a volume
 FILE *open_volume(const char *volumename) {
@@ -52,10 +52,6 @@ int digest(const char *pathname, PATH *filepath) {
     } 
 
     while(*pathname != '\0') {
-        if(dirlength >= (SIFS_MAX_NAME_LENGTH - 2)) {
-            SIFS_errno = SIFS_EMAXENTRY;
-            return(1);
-        }
         if(*pathname == '/' || *pathname == '\\') {
             ndirs++;
             *cur_dir = '\0'; 
@@ -66,8 +62,14 @@ int digest(const char *pathname, PATH *filepath) {
             cur_dir++;
             dirlength++;
         }
+
+        if(dirlength > (SIFS_MAX_NAME_LENGTH - 2)) {
+            SIFS_errno = SIFS_EINVAL;
+            return(1);
+        }
         pathname++;
     }
+    
     /* 
     checking if path finished with or without
     a trailing / 
@@ -232,7 +234,10 @@ int write_new_dir(int block, PATH *filepath, FILE *file) {
 
     // Change the parent entries and print back to the file
     uint32_t *parent_entries = &parent_dir.nentries;
-
+    if(parent_dir.nentries >= SIFS_MAX_ENTRIES) {
+        SIFS_errno = SIFS_EMAXENTRY;
+        return(1);
+    }
     parent_dir.entries[*parent_entries].blockID = block;
     (*parent_entries)++;
     parent_dir.modtime = time(NULL);

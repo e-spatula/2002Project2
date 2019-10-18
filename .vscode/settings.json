@@ -1,0 +1,6 @@
+{
+	"files.associations": {
+		"sifs-internal.h": "c",
+		"helper.h": "c"
+	}
+}

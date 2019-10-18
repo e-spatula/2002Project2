@@ -4,38 +4,67 @@
 #include "library/unit_test.h"
 
 
-void test_digest(int *failed, int *total) {
-    
-    PATH path; 
-    initialise_path(&path);
-    // check if the function succeeds in normal usage
-    
-    *failed += assert_equals(digest("home/eddie", &path), 0);
-    (*total)++;
-    
-    // check if it fails if there is a dir more than 31 chars
-    initialise_path(&path);
-    *failed += assert_equals(digest("abcdefghijklmnopqrstau245a64578", &path), 1);
-    (*total)++;
-    
-    // check normal path length
-    initialise_path(&path);
-    digest("home/eddie", &path);
-    *failed += assert_equals(path.dircount, 3);
-    (*total)++;
+void test_mkdir(void) {
+    const char *volume = "volD";
+    SIFS_errno = SIFS_EOK;
+    // test normal case
+    SIFS_mkdir(volume, "/subdir1/rhee");
+    assert_equals(SIFS_errno, SIFS_EOK);
 
-    // check if leading slash effects it
-    initialise_path(&path);
-    digest("/home/eddie", &path);
-    *failed += assert_equals(path.dircount, 3);
-    (*total)++;
+    SIFS_errno = SIFS_EOK;
+    // test directory name is too long
+    SIFS_mkdir(volume, "abcdefghijklmononhfghgjdfnbhdjj");
+    assert_equals(SIFS_errno, SIFS_EINVAL);
 
-    // check if trailing slashes effects it
-    initialise_path(&path);
-    digest("home/eddie/", &path);
-    *failed += assert_equals(path.dircount, 3);
-    (*total)++;
+    SIFS_errno = SIFS_EOK;
+    // test filepath is incorrect
+    SIFS_mkdir(volume, "nonexistent_dir/rhee");
+    assert_equals(SIFS_errno, SIFS_ENOENT);
+
+    SIFS_errno = SIFS_EOK;
+    // test directory is full
+    SIFS_mkdir(volume, "mydir1");
+    SIFS_mkdir(volume, "mydir2");
+    SIFS_mkdir(volume, "mydir3");
+    SIFS_mkdir(volume, "mydir4");
+    SIFS_mkdir(volume, "mydir5");
+    SIFS_mkdir(volume, "mydir6");
+    SIFS_mkdir(volume, "mydir7");
+    SIFS_mkdir(volume, "mydir8");
+    SIFS_mkdir(volume, "mydir9");
+    SIFS_mkdir(volume, "mydir10");
+    SIFS_mkdir(volume, "mydir11");
+    SIFS_mkdir(volume, "mydir12");
+    SIFS_mkdir(volume, "mydir13");
+    SIFS_mkdir(volume, "mydir14");
+    SIFS_mkdir(volume, "mydir15");
+    SIFS_mkdir(volume, "mydir16");
+    SIFS_mkdir(volume, "mydir17");
+    SIFS_mkdir(volume, "mydir18");
+    SIFS_mkdir(volume, "mydir19");    
+    SIFS_errno = SIFS_EOK;
+    SIFS_mkdir(volume, "SNOOPDOGG");
+    assert_equals(SIFS_errno, SIFS_EMAXENTRY);
 }
+
+void test_dirinfo(void) {
+    uint32_t nentries;
+    time_t modtime; 
+    char **entrynames;
+    char *volume = "volD";
+    // get the info of the root directory
+    SIFS_errno = SIFS_EOK;
+    SIFS_dirinfo(volume, "/", &entrynames, &nentries, &modtime);
+    assert_equals(SIFS_errno, 0);
+    assert_equals(nentries, 5);
+    assert_equals(modtime, 1569899632);
+    char *strings[5] = {"sifs.h", "subdir1", "subdir2", "sifs_mkvolume.c", "besttq-sample.c"};
+    for(int i = 0; i < nentries; i++) {
+        int result = strcmp(strings[i], entrynames[i]);
+        assert_equals(result, 0);
+    }
+}
+
 int main(int argcount, char *argvalue[])
 {
     
@@ -95,34 +124,34 @@ int main(int argcount, char *argvalue[])
 //         SIFS_writefile("volD", "/subdir1/rhee.c", data, size);
 //         SIFS_perror("Error ");
 //     }
-    printf("Should succeed\n");
-    SIFS_mkdir("volD", "subdir2/rhee");
-    SIFS_perror("Error ");
-    printf("\n");
-    SIFS_errno = SIFS_EOK;
+    // printf("Should succeed\n");
+    // SIFS_mkdir("volD", "subdir2/rhee");
+    // SIFS_perror("Error ");
+    // printf("\n");
+    // SIFS_errno = SIFS_EOK;
 
-    printf("Should fail\n");
-    SIFS_rmdir("volD", "/subdir2");
-    SIFS_perror("Error ");
-    printf("\n");
-    SIFS_errno = SIFS_EOK;
+    // printf("Should fail\n");
+    // SIFS_rmdir("volD", "/subdir2");
+    // SIFS_perror("Error ");
+    // printf("\n");
+    // SIFS_errno = SIFS_EOK;
     
-    printf("Should fail\n");
-    SIFS_rmdir("volD", "subdir/rhee");
-    SIFS_perror("Error ");
-    printf("\n");
-    SIFS_errno = SIFS_EOK;
+    // printf("Should fail\n");
+    // SIFS_rmdir("volD", "subdir/rhee");
+    // SIFS_perror("Error ");
+    // printf("\n");
+    // SIFS_errno = SIFS_EOK;
 
-    printf("Should succeed\n");
-    SIFS_rmdir("volD", "\\subdir2\\rhee");
-    SIFS_perror("Error ");
-    printf("\n");
-    SIFS_errno = SIFS_EOK;
+    // printf("Should succeed\n");
+    // SIFS_rmdir("volD", "\\subdir2\\rhee");
+    // SIFS_perror("Error ");
+    // printf("\n");
+    // SIFS_errno = SIFS_EOK;
 
-    printf("Should fail\n");
-    SIFS_rmdir("volD", "/");
-    SIFS_perror("Error ");
-    printf("\n");
+    // printf("Should fail\n");
+    // SIFS_rmdir("volD", "/");
+    // SIFS_perror("Error ");
+    // printf("\n");
 
     // SIFS_errno = SIFS_EOK;
     // size_t length;
@@ -155,6 +184,7 @@ int main(int argcount, char *argvalue[])
     // printf("Modtime is : %li\n", modtime);
     // printf("Length is : %li\n", length);
     
-
+    test_mkdir();
+    test_dirinfo();
     return(0);
 }

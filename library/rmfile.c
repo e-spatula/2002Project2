@@ -1,4 +1,4 @@
-#include "sifs-internal.h"
+#include "helper.h"
 
 // Remove an existing file from an existing volume
 int SIFS_rmfile(const char *volumename, const char *pathname)

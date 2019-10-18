@@ -1,4 +1,4 @@
-#include "sifs-internal.h"
+#include "helper.h"
 
 // get information about a requested directory
 int SIFS_dirinfo(const char *volumename, const char *pathname,
