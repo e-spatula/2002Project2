@@ -1,6 +1,5 @@
 #include "../sifs.h"
 #include "md5.h"
-
 //  CONCRETE STRUCTURES AND CONSTANTS USED THROUGHOUT THE SIFS LIBRARY.
 //  DO NOT CHANGE ANYTHING IN THIS FILE.
 
@@ -16,13 +15,14 @@
 
 #define SIFS_ROOTDIR_BLOCKID	0
 
+
+typedef char		SIFS_BIT;	// SIFS_UNUSED, SIFS_DIR, ...
+typedef uint32_t	SIFS_BLOCKID;
+
 typedef struct {
     size_t		blocksize;
     uint32_t		nblocks;
 } SIFS_VOLUME_HEADER;
-
-typedef char		SIFS_BIT;	// SIFS_UNUSED, SIFS_DIR, ...
-typedef uint32_t	SIFS_BLOCKID;
 
 //  DEFINITION OF EACH DIRECTORY BLOCK - MUST FIT INSIDE A SINGLE BLOCK
 typedef struct {
@@ -47,4 +47,3 @@ typedef struct {
     uint32_t		nfiles;		// n files with identical contents
     char		filenames[SIFS_MAX_ENTRIES][SIFS_MAX_NAME_LENGTH];
 } SIFS_FILEBLOCK;
-

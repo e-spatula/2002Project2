@@ -3,7 +3,7 @@ PROJECT		= sifs
 HEADER		= $(PROJECT).h
 LIBRARY		= lib$(PROJECT).a
 
-APPLICATIONS	= sifs_mkvolume sifs_dirinfo
+APPLICATIONS	= sifs_mkvolume sifs_dirinfo test_file
 
 # ----------------------------------------------------------------
 

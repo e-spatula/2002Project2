@@ -1,0 +1,4 @@
+*.o
+sifs_dirinfo
+sifs_mkvolume
+test_file

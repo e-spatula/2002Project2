@@ -22,10 +22,13 @@ char	*SIFS_errlist[] = {
 
 #define	SIFS_NERRS	(sizeof(SIFS_errlist) / sizeof(SIFS_errlist[0]))
 
-//  THE FUNCTION SIFS_perror() PRODUCES A MESSAGE ON THE STANDARD ERROR OUTPUT,
-//  DESCRIBING THE LAST ERROR ENCOUNTERED.
-//  IF PROVIDED WITH A NON-NULL PREFIX, IT IS PRINTED BEFORE THE MESSAGE
-
+/*  
+* THE FUNCTION SIFS_perror() PRODUCES A MESSAGE ON THE STANDARD ERROR OUTPUT,
+* DESCRIBING THE LAST ERROR ENCOUNTERED.
+* IF PROVIDED WITH A NON-NULL PREFIX, IT IS PRINTED BEFORE THE MESSAGE
+*
+* @param const char *prefix - prefix to be printed before the message
+*/
 void SIFS_perror(const char *prefix)
 {
     if(SIFS_errno >= SIFS_EOK && SIFS_errno < SIFS_NERRS) {
