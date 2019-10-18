@@ -274,8 +274,8 @@ void test_fileinfo(void) {
     stat("1st.README", &stats);
     size_t size_file;
     size_file = stats.st_size;
-    void *data = malloc(size);
-    data = malloc(size);
+    void *data = malloc(size_file);
+    data = malloc(size_file);
     fread(data, size, 1, file);
 
     time_t writetime = time(NULL);
@@ -299,6 +299,58 @@ void test_fileinfo(void) {
 
 
 }
+
+void test_rmfile(void) {
+    uint32_t nentries;
+    uint32_t nnentries;
+    time_t modtime; 
+    char **entrynames;
+    char *volume = "volD";
+    SIFS_errno = SIFS_EOK;
+    SIFS_dirinfo(volume, "/", &entrynames, &nentries, &modtime);
+    assert_equals(SIFS_errno, SIFS_EOK);
+
+    // test removing legit file
+    SIFS_errno = SIFS_EOK;
+    SIFS_rmfile(volume, "sifs_mkvolume.c");
+    assert_equals(SIFS_errno, SIFS_EOK);
+    SIFS_dirinfo(volume, "/", &entrynames, &nnentries, &modtime);
+    assert_equals(nentries - 1, nnentries);
+    
+    
+
+    // test removing non-existent file
+    SIFS_errno = SIFS_EOK;
+    SIFS_rmfile(volume, "blah.c");
+    assert_equals(SIFS_errno, SIFS_ENOENT);
+
+
+    // test removing nested file 
+
+    FILE *file = fopen("1st.README", "r");
+    struct stat stats;
+    stat("1st.README", &stats);
+    size_t size_file;
+    size_file = stats.st_size;
+    void *data = malloc(size_file);
+    data = malloc(size_file);
+    fread(data, size_file, 1, file);
+
+    SIFS_writefile(volume, "subdir1/rhee", data, size_file);
+    SIFS_errno = SIFS_EOK;
+    assert_equals(SIFS_errno, SIFS_EOK);
+
+    SIFS_rmfile(volume, "subdir1/rhee");
+    assert_equals(SIFS_errno, SIFS_EOK);
+
+    // test removing directory
+    SIFS_errno = SIFS_EOK;
+    SIFS_rmfile(volume, "subdir1");
+    assert_equals(SIFS_errno, SIFS_EINVAL);
+
+
+}
+
 int main(int argcount, char *argvalue[])
 {
     // test_mkdir();
@@ -307,5 +359,6 @@ int main(int argcount, char *argvalue[])
     // test_writefile();
     // test_readfile();
     // test_fileinfo();
+    test_rmfile();
     return(0);
 }
