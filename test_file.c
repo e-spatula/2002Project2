@@ -144,6 +144,34 @@ void test_writefile(void) {
     assert_equals(size, info_size);
     assert_equals(modtime, write_time);
 
+
+    // test writing file that's already on disk
+    SIFS_errno = SIFS_EOK;
+    char **entrynames;
+    uint32_t nentries;
+    time_t mymodtime;
+
+    SIFS_dirinfo(volume, "subdir1", &entrynames, &nentries, &mymodtime);
+
+
+    SIFS_errno = SIFS_EOK;
+    write_time = time(NULL);
+    SIFS_writefile(volume, "/subdir1/rhee.c", data, size);
+    assert_equals(SIFS_errno, SIFS_EOK);
+    SIFS_errno = SIFS_EOK;
+    SIFS_fileinfo(volume, "/subdir1/rhee.c", &info_size, &modtime);
+    assert_equals(size, info_size);
+    assert_equals(modtime, write_time);
+
+    SIFS_errno = SIFS_EOK;
+    uint32_t nnentries;
+    SIFS_dirinfo(volume, "subdir1", &entrynames, &nnentries, &modtime);
+    assert_equals(nnentries, nentries + 1);
+
+    
+
+
+
     
 }
 int main(int argcount, char *argvalue[])
@@ -243,5 +271,16 @@ int main(int argcount, char *argvalue[])
     // test_dirinfo();
     // test_rmdir();  
     test_writefile();
+    // char *volume = "volD";
+    // FILE *file = fopen("library/helper.c", "r");
+    // struct stat stats;
+    // stat("library/helper.c", &stats);
+    // size_t size = stats.st_size;
+    // void *data = malloc(size);
+    // fread(data, size, 1, file);
+    // SIFS_errno = SIFS_EOK;
+    // SIFS_writefile(volume, "/subdir1/rhee.c", data, size);
+    // assert_equals(SIFS_errno, SIFS_EOK);
+    // SIFS_perror("");
     return(0);
 }
