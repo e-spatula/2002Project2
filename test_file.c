@@ -87,7 +87,13 @@ void test_dirinfo(void) {
     assert_equals(nentries, 1);
     char *name = "rhee";
     int result = strcmp(name, entrynames[0]);
-    assert_equals(result, 0);    
+    assert_equals(result, 0);   
+
+    // test finding file
+
+    SIFS_errno = SIFS_EOK;
+    SIFS_dirinfo(volume, "sifs_mkvolume.c", &entrynames, &nentries, &modtime);
+    assert_equals(SIFS_errno, SIFS_EINVAL); 
 
 }
 
@@ -168,119 +174,88 @@ void test_writefile(void) {
     SIFS_dirinfo(volume, "subdir1", &entrynames, &nnentries, &modtime);
     assert_equals(nnentries, nentries + 1);
 
-    
+    // test add perfect duplicate file
+    SIFS_errno = SIFS_EOK;
+    SIFS_writefile(volume, "/subdir1/helper.c", data, size);
+    SIFS_errno = SIFS_EOK;
+    SIFS_fileinfo(volume, "/subdir1/helper.c", &info_size, &modtime);
+    assert_equals(modtime, write_time);
+    SIFS_dirinfo(volume, "subdir1", &entrynames, &nnentries, &modtime);
+    assert_equals(nnentries, nentries + 1);
+
+    // test add to non-existent directory
+    SIFS_errno = SIFS_EOK;
+    SIFS_writefile(volume, "/dfnjkfd/helper.c", data, size);
+    assert_equals(SIFS_errno, SIFS_ENOENT);
 
 
+    // test add file with different md5 but same name
+    fclose(file);
+    file = fopen("1st.README", "r");
+    stat("1st.README", &stats);
+    size = stats.st_size;
+    data = malloc(size);
+    fread(data, size, 1, file);
 
-    
+    SIFS_errno = SIFS_EOK;
+    SIFS_writefile(volume, "sifs_mkvolume.c", data, size);
+    assert_equals(SIFS_errno, SIFS_EEXIST);
+}
+
+void test_readfile(void) {
+    void* data;
+    char *volume = "volD"; 
+    size_t size;
+
+    // test reading file that exists from disk
+    SIFS_errno = SIFS_EOK;
+    SIFS_readfile(volume, "sifs_mkvolume.c", &data, &size);
+
+    FILE* file;
+    struct stat stats;
+    file = fopen("sifs_mkvolume.c", "r");
+    stat("sifs_mkvolume.c", &stats);
+    size_t size_file = stats.st_size;
+    void *data_file = malloc(size);
+    fread(data_file, size, 1, file);
+
+    assert_equals(size_file, size);
+    int alikeness = memcmp(data_file, data, size);
+    assert_equals(alikeness, 0);
+
+    // test reading file by different name
+    SIFS_errno = SIFS_EOK;
+    SIFS_writefile(volume, "blah.c", data_file, size_file);
+    assert_equals(SIFS_errno, SIFS_EOK);
+    SIFS_errno = SIFS_EOK;
+    SIFS_readfile(volume, "blah.c", &data, &size);
+    assert_equals(SIFS_errno, SIFS_EOK);
+    assert_equals(size_file, size);
+    alikeness = memcmp(data_file, data, size);
+    assert_equals(alikeness, 0);
+
+    // test reading file that's not there
+    SIFS_errno = SIFS_EOK;
+    SIFS_readfile(volume, "speck.c", &data, &size);
+    assert_equals(SIFS_errno, SIFS_ENOENT);
+
+    // test reading directory
+    SIFS_readfile(volume, "subdir1", &data, &size);
+    assert_equals(SIFS_errno, SIFS_EINVAL);
+
+
+}
+
+void test_fileinfo(void) {
+
 }
 int main(int argcount, char *argvalue[])
 {
-    
-    // size_t length;
-    // time_t modtime;
-    // SIFS_fileinfo("volD", "besttq-sample.c", &length, &modtime);
-    // SIFS_perror("Error : ");
-    // printf("Length : %li\n", length);
-    // printf("Modtime : %li\n", modtime);
-
-    // FILE * file = fopen("output", "w");
-    // void *data = NULL;
-    // size_t nbytes;
-    // SIFS_readfile("volC", "sifs.h-copy", &data, &nbytes);
-    // fwrite(data, nbytes, 1, file);
-    // fclose(file);
-    // SIFS_perror("Error ");
-
-    // SIFS_rmfile("volC", "sifs.h");
-    // SIFS_perror("Error ");
-    // SIFS_rmfile("volD", "sifs.h");
-    // SIFS_perror("Error ");
-
-
-//    FILE *file = fopen("clean.sh", "r");
-//    struct stat stats;
-//     if(stat("clean.sh", &stats) == 0) {
-//         size_t size = stats.st_size;
-//         void *data = malloc(size);
-//         fread(data, size, 1, file);
-//         SIFS_writefile("volD", "/subdir1/rhee.c", data, size);
-//         SIFS_perror("Error ");
-//     }
-    // printf("Should succeed\n");
-    // SIFS_mkdir("volD", "subdir2/rhee");
-    // SIFS_perror("Error ");
-    // printf("\n");
-    // SIFS_errno = SIFS_EOK;
-
-    // printf("Should fail\n");
-    // SIFS_rmdir("volD", "/subdir2");
-    // SIFS_perror("Error ");
-    // printf("\n");
-    // SIFS_errno = SIFS_EOK;
-    
-    // printf("Should fail\n");
-    // SIFS_rmdir("volD", "subdir/rhee");
-    // SIFS_perror("Error ");
-    // printf("\n");
-    // SIFS_errno = SIFS_EOK;
-
-    // printf("Should succeed\n");
-    // SIFS_rmdir("volD", "\\subdir2\\rhee");
-    // SIFS_perror("Error ");
-    // printf("\n");
-    // SIFS_errno = SIFS_EOK;
-
-    // printf("Should fail\n");
-    // SIFS_rmdir("volD", "/");
-    // SIFS_perror("Error ");
-    // printf("\n");
-
-    // SIFS_errno = SIFS_EOK;
-    // size_t length;
-    // time_t modtime;
-
-    // SIFS_fileinfo("volD", "sifs_mkvolume.c", &length, &modtime);
-    // SIFS_perror("Error");
-
-    // printf("Modtime is : %li\n", modtime);
-    // printf("Length is : %li\n", length);
-
-    // FILE *file = fopen("library/helper.c", "r");
-    // struct stat stats;
-    // if(stat("clean.sh", &stats) == 0) {
-    //     size_t size = stats.st_size;
-    //     printf("Size is %li\n", size);
-    //     printf("Creation time is %li\n", time(NULL));
-    //     void *data = malloc(size);
-    //     fread(data, size, 1, file);
-    //     SIFS_writefile("volD", "/subdir1/helper.c", data, size);
-    //     SIFS_perror("Error ");
-    // }
-
-    // SIFS_errno = SIFS_EOK;
-
-
-    // SIFS_fileinfo("volD", "subdir1/helper.c", &length, &modtime);
-    // SIFS_perror("Error");
-
-    // printf("Modtime is : %li\n", modtime);
-    // printf("Length is : %li\n", length);
-    
     // test_mkdir();
     // test_dirinfo();
     // test_rmdir();  
-    test_writefile();
-    // char *volume = "volD";
-    // FILE *file = fopen("library/helper.c", "r");
-    // struct stat stats;
-    // stat("library/helper.c", &stats);
-    // size_t size = stats.st_size;
-    // void *data = malloc(size);
-    // fread(data, size, 1, file);
-    // SIFS_errno = SIFS_EOK;
-    // SIFS_writefile(volume, "/subdir1/rhee.c", data, size);
-    // assert_equals(SIFS_errno, SIFS_EOK);
-    // SIFS_perror("");
+    // test_writefile();
+    // test_readfile();
+    // test_fileinfo();
     return(0);
 }

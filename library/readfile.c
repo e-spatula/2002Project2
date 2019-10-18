@@ -57,7 +57,12 @@ int SIFS_readfile(const char *volumename, const char *pathname,
         fclose(file);
         return(1);
     }
-
+    // on the off chance the user asks for something other than a file
+    if(bitmap[file_block] != SIFS_FILE) {
+        SIFS_errno = SIFS_EINVAL;
+        fclose(file);
+        return(1);
+    }
     const int initial_offset = sizeof(header) + sizeof(bitmap);
     int total_offset = initial_offset + (header.blocksize * file_block);
     SIFS_FILEBLOCK file_to_read;

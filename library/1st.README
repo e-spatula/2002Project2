@@ -11,8 +11,8 @@ YOU WILL NEED TO COMPLETE THE API IMPLEMENTATIONS OF:
     dirinfo.c done docced tested
     rmdir.c done docced tested
 
-    writefile.c done docced 
-    readfile.c done docced
+    writefile.c done docced tested
+    readfile.c done docced tested
     fileinfo.c done docced
     rmfile.c done docced
 

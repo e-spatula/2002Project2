@@ -46,6 +46,11 @@ int SIFS_dirinfo(const char *volumename, const char *pathname,
     int block = filepath.blocks[dircount - 1];
     int offset = sizeof(header) + sizeof(bitmap) + (block * header.blocksize);
 
+    if(bitmap[block] != SIFS_DIR) {
+        SIFS_errno = SIFS_EINVAL;
+        fclose(file);
+        return(1);
+    }
     SIFS_DIRBLOCK dir; 
     if(read_dir_block(file, &dir, offset) != 0) {
         fclose(file);
