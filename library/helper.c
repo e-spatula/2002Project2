@@ -525,7 +525,7 @@ int find_parent_block(int block, SIFS_VOLUME_HEADER *header,
             (sizeof(SIFS_BIT) * header -> nblocks);
         int total_offset;
 
-        for(int i = 0; i < header -> nb	locks; i++) {
+        for(int i = 0; i < header -> nblocks; i++) {
             if(*bitmap == SIFS_DIR) {
                 total_offset = initial_offset + (i * header -> blocksize);
 
