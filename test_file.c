@@ -247,6 +247,56 @@ void test_readfile(void) {
 }
 
 void test_fileinfo(void) {
+    size_t size;
+    time_t modtime; 
+    char *volume = "volD";
+
+
+    // get the info of the root directory
+    SIFS_errno = SIFS_EOK;
+    SIFS_fileinfo(volume, "/sifs_mkvolume.c", &size, &modtime);
+    assert_equals(SIFS_errno, 0);
+    SIFS_errno = SIFS_EOK;
+    assert_equals(modtime, 1569899623);
+    assert_equals(size, 1162);
+
+
+    // test finding a non-existent directory
+    SIFS_errno = SIFS_EOK;
+    SIFS_fileinfo(volume, "blah", &size, &modtime);
+    assert_equals(SIFS_errno, SIFS_ENOENT);
+
+    // test finding a different directory
+
+
+    FILE *file = fopen("1st.README", "r");
+    struct stat stats;
+    stat("1st.README", &stats);
+    size_t size_file;
+    size_file = stats.st_size;
+    void *data = malloc(size);
+    data = malloc(size);
+    fread(data, size, 1, file);
+
+    time_t writetime = time(NULL);
+    SIFS_writefile(volume, "subdir1/rhee", data, size_file);
+    SIFS_errno = SIFS_EOK;
+    assert_equals(SIFS_errno, SIFS_EOK);
+
+    
+    SIFS_fileinfo(volume, "subdir1/rhee", &size, &modtime);
+    assert_equals(SIFS_errno, SIFS_EOK);
+
+    assert_equals(modtime, writetime);
+    assert_equals(size, size_file);
+
+
+    // test finding directory 
+
+    SIFS_errno = SIFS_EOK;
+    SIFS_fileinfo(volume, "subdir1", &size, &modtime);
+    assert_equals(SIFS_errno, SIFS_EINVAL); 
+
 
 }
 int main(int argcount, char *argvalue[])

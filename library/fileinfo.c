@@ -77,6 +77,11 @@ int SIFS_fileinfo(const char *volumename, const char *pathname,
         fclose(file);
         return(1);
     }
+    if(bitmap[file_block] != SIFS_FILE) {
+        SIFS_errno = SIFS_EINVAL;
+        fclose(file);
+        return(1);
+    }
     SIFS_FILEBLOCK child_file;
     total_offset = initial_offset + (header.blocksize * file_block);
     if(read_file_block(file, &child_file, total_offset) != 0) {

@@ -13,7 +13,7 @@ YOU WILL NEED TO COMPLETE THE API IMPLEMENTATIONS OF:
 
     writefile.c done docced tested
     readfile.c done docced tested
-    fileinfo.c done docced
+    fileinfo.c done docced tested
     rmfile.c done docced
 
 
