@@ -33,3 +33,4 @@ extern int write_file(SIFS_FILEBLOCK *, int, FILE *);
 extern int write_bitmap(SIFS_BIT *, SIFS_VOLUME_HEADER *, FILE *);
 extern int write_dir(SIFS_DIRBLOCK *, int, FILE *);
 extern int find_parent_block(int, SIFS_VOLUME_HEADER *, SIFS_BIT *, FILE *);
+
