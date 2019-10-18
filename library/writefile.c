@@ -63,7 +63,6 @@ int SIFS_writefile(const char *volumename, const char *pathname,
     int parent_block;
     int parent_entries;
     char* filename = filepath.entries[entry_count - 1];
-    bool file_exists = false;
 
     // Check if a file with the same MD5 hash exists
     for(int i = 0; i < header.nblocks; i++) {
@@ -71,7 +70,6 @@ int SIFS_writefile(const char *volumename, const char *pathname,
             total_offset = initial_offset + (i * header.blocksize);
             read_file_block(file, &temp_block, total_offset);
             if(memcmp(md5, temp_block.md5, MD5_BYTELEN) == 0) {
-                file_exists = true;
                 int temp_nfiles = temp_block.nfiles;
                 if(temp_nfiles == SIFS_MAX_ENTRIES) {
                     SIFS_errno = SIFS_EMAXENTRY;
@@ -129,7 +127,10 @@ int SIFS_writefile(const char *volumename, const char *pathname,
 
                     total_offset = initial_offset + (header.blocksize * i);
                     write_file(&temp_block, total_offset, file);
+
                 }
+                fclose(file);
+                return(0);
             }
         }
     }
@@ -139,82 +140,82 @@ int SIFS_writefile(const char *volumename, const char *pathname,
     Otherwise the file does not exist yet on the volume, search the volume for
     sufficient blocks to contain the file
     */ 
-    if((!file_exists)) {
-        float temp_blocks = nbytes / (float) header.blocksize;
-        temp_blocks += 0.9999999999999999;
-        int blocks = (int) temp_blocks;
-        int free_block = find_unused_blocks(blocks + 1, file);
-        if(free_block < 0 ) {
-            return(1);
-        }
-        // Set the bitmap
-        bitmap[free_block] = SIFS_FILE;
-        for(int i = free_block + 1; i <= free_block + blocks; i++) {
-            bitmap[i] = SIFS_DATABLOCK;
-        }
-
-        
-        if(check_collisions(&filepath, file) != 0) {
-            fclose(file);
-            return(1);
-        }
-        parent_block = filepath.blocks[entry_count - 2];
-        total_offset = initial_offset + (header.blocksize * parent_block);
-        if(read_dir_block(file, &parent_dir, total_offset) != 0) {
-            fclose(file);
-            return(1);
-        }
-        
-        // Update the parent block and write it to the volume
-        parent_entries = parent_dir.nentries;
-        if(parent_entries == SIFS_MAX_ENTRIES) {
-            fclose(file);
-            SIFS_errno = SIFS_EMAXENTRY;
-            return(1);
-        }
-        parent_dir.modtime = time(NULL);
-        parent_dir.entries[parent_entries].blockID = free_block;
-        parent_dir.entries[parent_entries].fileindex = 0;
-        parent_dir.nentries++;
-
-        total_offset = initial_offset + (header.blocksize * parent_block);
-        if(write_dir(&parent_dir, total_offset, file) != 0) {
-            fclose(file);
-            return(1);
-        }
-        
-
-        // Zero the block before writing 
-        memset(&temp_block, 0, sizeof(SIFS_FILEBLOCK));
-
-        temp_block.modtime = time(NULL);
-        temp_block.length = nbytes;
-        memcpy(temp_block.md5, md5, MD5_BYTELEN);
-        temp_block.firstblockID = free_block + 1;
-        temp_block.nfiles = 1;
-        strcpy(temp_block.filenames[0], filename);
-
-        // Write the file block to the volume
-        total_offset = initial_offset + (header.blocksize * free_block);
-        if(write_file(&temp_block, total_offset, file) != 0) {
-            return(1);
-        }
-
-        // Write the actual data
-        total_offset += header.blocksize;
-        fseek(file, total_offset, SEEK_SET);
-        if(fwrite(data, nbytes, 1, file) != 1) {
-            SIFS_errno = SIFS_EINVAL;
-            return(1);
-        }
-
-        // Write the bitmap 
-
-        if(write_bitmap(bitmap, &header, file) != 0) {
-            fclose(file);
-            return(1);
-        }
+    
+    float temp_blocks = nbytes / (float) header.blocksize;
+    temp_blocks += 0.9999999999999999;
+    int blocks = (int) temp_blocks;
+    int free_block = find_unused_blocks(blocks + 1, file);
+    if(free_block < 0 ) {
+        return(1);
     }
+    // Set the bitmap
+    bitmap[free_block] = SIFS_FILE;
+    for(int i = free_block + 1; i <= free_block + blocks; i++) {
+        bitmap[i] = SIFS_DATABLOCK;
+    }
+
+    
+    if(check_collisions(&filepath, file) != 0) {
+        fclose(file);
+        return(1);
+    }
+    parent_block = filepath.blocks[entry_count - 2];
+    total_offset = initial_offset + (header.blocksize * parent_block);
+    if(read_dir_block(file, &parent_dir, total_offset) != 0) {
+        fclose(file);
+        return(1);
+    }
+    
+    // Update the parent block and write it to the volume
+    parent_entries = parent_dir.nentries;
+    if(parent_entries == SIFS_MAX_ENTRIES) {
+        fclose(file);
+        SIFS_errno = SIFS_EMAXENTRY;
+        return(1);
+    }
+    parent_dir.modtime = time(NULL);
+    parent_dir.entries[parent_entries].blockID = free_block;
+    parent_dir.entries[parent_entries].fileindex = 0;
+    parent_dir.nentries++;
+
+    total_offset = initial_offset + (header.blocksize * parent_block);
+    if(write_dir(&parent_dir, total_offset, file) != 0) {
+        fclose(file);
+        return(1);
+    }
+    
+
+    // Zero the block before writing 
+    memset(&temp_block, 0, sizeof(SIFS_FILEBLOCK));
+
+    temp_block.modtime = time(NULL);
+    temp_block.length = nbytes;
+    memcpy(temp_block.md5, md5, MD5_BYTELEN);
+    temp_block.firstblockID = free_block + 1;
+    temp_block.nfiles = 1;
+    strcpy(temp_block.filenames[0], filename);
+
+    // Write the file block to the volume
+    total_offset = initial_offset + (header.blocksize * free_block);
+    if(write_file(&temp_block, total_offset, file) != 0) {
+        return(1);
+    }
+
+    // Write the actual data
+    total_offset += header.blocksize;
+    fseek(file, total_offset, SEEK_SET);
+    if(fwrite(data, nbytes, 1, file) != 1) {
+        SIFS_errno = SIFS_EINVAL;
+        return(1);
+    }
+
+    // Write the bitmap 
+
+    if(write_bitmap(bitmap, &header, file) != 0) {
+        fclose(file);
+        return(1);
+    }
+    
     fclose(file);
     return(0);
 }
