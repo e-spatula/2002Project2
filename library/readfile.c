@@ -34,7 +34,6 @@ int SIFS_readfile(const char *volumename, const char *pathname,
     }
 
     SIFS_VOLUME_HEADER header;
-    
     if(read_header(file, &header) != 0) {
         fclose(file);
         return(1);
